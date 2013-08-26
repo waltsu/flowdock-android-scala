@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.Adapter
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.waltsu.flowdock.models.Flow
+import android.content.Intent
 
 class MainActivity extends Activity {
 	override def onCreate(savedInstaneState: Bundle): Unit = {
@@ -20,7 +21,10 @@ class MainActivity extends Activity {
 	  setContentView(R.layout.activity_main)
 	  flowList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	    override def onItemClick(adpterView: AdapterView[_], view: View, pos: Int, id: Long) = {
-
+	      val selectedFlow: Flow = flowList.getAdapter().getItem(pos).asInstanceOf[Flow]
+	      val flowIntent: Intent = new Intent(MainActivity.this, classOf[FlowActivity])
+	      flowIntent.putExtra("flowUrl", selectedFlow.apiUrl)
+	      startActivity(flowIntent)
 	    }
 	  })
 	    
