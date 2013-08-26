@@ -17,3 +17,5 @@ gen/
 local.properties
 
 *.keystore
+
+proguard_cache
