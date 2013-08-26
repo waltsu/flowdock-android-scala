@@ -23,7 +23,7 @@ class FlowActivity extends Activity {
 	  
 	  FlowdockApi.getMessages(flowUrl) onSuccess {
 	    case messages =>
-	      utils.runOnUiThread(this, () => messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages)))
+	      //utils.runOnUiThread(this, () => messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages)))
 	  }
 	}
 	

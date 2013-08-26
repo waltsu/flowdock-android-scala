@@ -35,7 +35,7 @@ object FlowdockApi {
               val content = m.get("content")
               new FlowMessage(event.get.toString, sent.get.asInstanceOf[Double], content.get.toString)
             })
-            messagePromise success messageModels
+            messagePromise success List[FlowMessage]()
           case None =>
             messagePromise failure new Exception("No messages")
         }
