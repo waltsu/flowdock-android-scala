@@ -12,6 +12,8 @@ import android.widget.AdapterView
 import android.view.View
 import android.widget.Adapter
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class MainActivity extends Activity {
 	override def onCreate(savedInstaneState: Bundle): Unit = {
 	  super.onCreate(savedInstaneState)
@@ -32,16 +34,18 @@ class MainActivity extends Activity {
 	override def onResume(): Unit = {
 	  super.onResume();
 	  
-	  FlowdockApi.getFlows(flows =>
-	    flows match {
-	      case Some(x) => {
-	        val adapter = flowListAdapter(x.asInstanceOf[List[Map[String, Any]]])
-	        flowList.setAdapter(adapter)
+	  FlowdockApi.getFlows() onSuccess {
+	    case flows => {
+	      flows match {
+	        case Some(x) => {
+	          val adapter = flowListAdapter(x.asInstanceOf[List[Map[String, Any]]])
+	          utils.runOnUiThread(this, () => flowList.setAdapter(adapter))
+	        }
+	        case None =>
+	          Log.v("debug", "No flows")
 	      }
-	      case None =>
-	        Log.v("debug", "No flows")
 	    }
-	  )
+	  }
 	}
 	
 	def flowList: ListView = findViewById(R.id.flowList).asInstanceOf[ListView]
