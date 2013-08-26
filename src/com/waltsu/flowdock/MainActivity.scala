@@ -20,7 +20,7 @@ class MainActivity extends Activity {
 	  setContentView(R.layout.activity_main)
 	  flowList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	    override def onItemClick(adpterView: AdapterView[_], view: View, pos: Int, id: Long) = {
-	      Log.v("debug", pos.toString)
+
 	    }
 	  })
 	    
@@ -42,8 +42,7 @@ class MainActivity extends Activity {
 	
 	def flowList: ListView = findViewById(R.id.flowList).asInstanceOf[ListView]
 	
-	def flowListAdapter(flows: List[Flow]): ArrayAdapter[String] = {
-	  val names = flows.map((f: Flow) => f.name)
-	  new ArrayAdapter(getApplicationContext(), R.layout.basic_list_item, toJavaList[String](names))
+	def flowListAdapter(flows: List[Flow]): ArrayAdapter[Flow] = {
+	  new FlowAdapter(getApplicationContext(), flows)
 	}
 }
