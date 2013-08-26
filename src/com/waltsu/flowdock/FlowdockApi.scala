@@ -8,6 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success }
 import com.waltsu.flowdock.models.Flow
 import com.waltsu.flowdock.models.Flow
+import com.waltsu.flowdock.models.FlowMessage
 
 // TODO: Some sort of cache
 object FlowdockApi {
@@ -20,9 +21,33 @@ object FlowdockApi {
     
   val baseUrl = "https://api.flowdock.com"
     
+  def getMessages(flowUrl: String): Future[List[FlowMessage]] = {
+    val messagePromise = promise[List[FlowMessage]]  
+    getRequest(flowUrl + "/messages")  onComplete {
+      case Success(response) => {
+        val messages = JSON.parseFull(response)
+        messages match {
+          case Some(messageJson) =>
+            val messageList = messageJson.asInstanceOf[List[Map[String, Any]]]
+            val messageModels = messageList.map((m: Map[String, Any]) => {
+              val event = m.get("event")
+              val sent = m.get("sent")
+              val content = m.get("content")
+              new FlowMessage(event.get.toString, sent.get.asInstanceOf[Double], content.get.toString)
+            })
+            messagePromise success messageModels
+          case None =>
+            messagePromise failure new Exception("No messages")
+        }
+      }
+      case Failure(throwable) => messagePromise failure throwable
+    }
+    messagePromise.future
+  }
+
   def getFlows(): Future[List[Flow]] = {
     val flowPromise = promise[List[Flow]]
-    getRequest("/flows") onComplete {
+    getRequest(baseUrl + "/flows") onComplete {
       case Success(response) => {
         val flows = JSON.parseFull(response)
         flows match {
@@ -45,9 +70,9 @@ object FlowdockApi {
   }
 
   private def getRequest(resource: String): Future [String]= {
-    Log.v("debug", "Getting: " + baseUrl + resource)
+    Log.v("debug", "Getting: " + resource)
     val getPromise = promise[String]
-    client.get(baseUrl + resource, new AsyncHttpResponseHandler() {
+    client.get(resource, new AsyncHttpResponseHandler() {
     	override def onSuccess(response: String) = {
     	  Log.v("debug", "Got response: " + response)
     	  getPromise success response
