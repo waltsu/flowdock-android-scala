@@ -11,8 +11,8 @@ import utils._
 import android.widget.AdapterView
 import android.view.View
 import android.widget.Adapter
-
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.waltsu.flowdock.models.Flow
 
 class MainActivity extends Activity {
 	override def onCreate(savedInstaneState: Bundle): Unit = {
@@ -35,29 +35,15 @@ class MainActivity extends Activity {
 	  super.onResume();
 	  
 	  FlowdockApi.getFlows() onSuccess {
-	    case flows => {
-	      flows match {
-	        case Some(x) => {
-	          val adapter = flowListAdapter(x.asInstanceOf[List[Map[String, Any]]])
-	          utils.runOnUiThread(this, () => flowList.setAdapter(adapter))
-	        }
-	        case None =>
-	          Log.v("debug", "No flows")
-	      }
-	    }
+	    case flows =>
+          utils.runOnUiThread(this, () => flowList.setAdapter(flowListAdapter(flows)))
 	  }
 	}
 	
 	def flowList: ListView = findViewById(R.id.flowList).asInstanceOf[ListView]
 	
-	def flowListAdapter(flows: List[Map[String, Any]]): ArrayAdapter[String] = {
-	  val names = flows.map((m: Map[String, Any]) => {
-	    val name = m.get("name")
-	    name match {
-	      case Some(x) => x.toString
-	      case None => ""
-	    }
-	  })
+	def flowListAdapter(flows: List[Flow]): ArrayAdapter[String] = {
+	  val names = flows.map((f: Flow) => f.name)
 	  new ArrayAdapter(getApplicationContext(), R.layout.basic_list_item, toJavaList[String](names))
 	}
 }

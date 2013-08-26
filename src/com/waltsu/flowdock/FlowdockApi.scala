@@ -6,6 +6,8 @@ import scala.util.parsing.json.JSON
 import scala.concurrent.{ Future, future, promise }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success }
+import com.waltsu.flowdock.models.Flow
+import com.waltsu.flowdock.models.Flow
 
 // TODO: Some sort of cache
 object FlowdockApi {
@@ -18,15 +20,29 @@ object FlowdockApi {
     
   val baseUrl = "https://api.flowdock.com"
     
-  def getFlows(): Future[Option[Any]] = {
-    val flowPromise = promise[Option[Any]]
+  def getFlows(): Future[List[Flow]] = {
+    val flowPromise = promise[List[Flow]]
     getRequest("/flows") onComplete {
-      case Success(response) =>  flowPromise success(JSON.parseFull(response))
+      case Success(response) => {
+        val flows = JSON.parseFull(response)
+        flows match {
+          case Some(flowJson) =>
+            val flowList = flowJson.asInstanceOf[List[Map[String, Any]]]
+            val flowModels = flowList.map((f: Map[String, Any]) => {
+              val name = f.get("name")
+              val apiUrl = f.get("url")
+              new Flow(name.get.toString, apiUrl.get.toString)
+	        })
+            flowPromise success(flowModels)
+          case None =>
+            flowPromise failure new Exception("No flows") 
+          
+        }
+      }
       case Failure(throwable) => flowPromise failure throwable
     }
     flowPromise.future
   }
-    
 
   private def getRequest(resource: String): Future [String]= {
     Log.v("debug", "Getting: " + baseUrl + resource)
