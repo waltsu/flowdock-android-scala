@@ -8,11 +8,20 @@ import android.util.Log
 import android.widget.ListView
 import android.widget.ArrayAdapter
 import utils._
+import android.widget.AdapterView
+import android.view.View
+import android.widget.Adapter
 
 class MainActivity extends Activity {
 	override def onCreate(savedInstaneState: Bundle): Unit = {
 	  super.onCreate(savedInstaneState)
 	  setContentView(R.layout.activity_main)
+	  flowList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+	    override def onItemClick(adpterView: AdapterView[_], view: View, pos: Int, id: Long) = {
+	      Log.v("debug", pos.toString)
+	    }
+	  })
+	    
 	}
 	
 	override def onCreateOptionsMenu(menu: Menu): Boolean = {
@@ -45,6 +54,6 @@ class MainActivity extends Activity {
 	      case None => ""
 	    }
 	  })
-	  new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, toJavaList[String](names))
+	  new ArrayAdapter(getApplicationContext(), R.layout.basic_list_item, toJavaList[String](names))
 	}
 }

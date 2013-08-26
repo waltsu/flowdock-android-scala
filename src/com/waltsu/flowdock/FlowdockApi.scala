@@ -4,6 +4,7 @@ import com.loopj.android.http._
 import android.util.Log
 import scala.util.parsing.json.JSON
 
+// TODO: Some sort of cache
 object FlowdockApi {
   val client: AsyncHttpClient = new AsyncHttpClient()
   val apiToken = "4e38bb9f024539cea526e87262999d35"
