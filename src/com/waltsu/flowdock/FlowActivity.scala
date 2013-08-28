@@ -27,7 +27,7 @@ class FlowActivity extends Activity {
 	      scrollMessageListToBottom()
 	  }
 	  Log.v("debug", "Starting to consume messages from stream")
-	  FlowdockApi.streamingMessages(streamUrl, (message: FlowMessage) => {
+	  FlowdockStreamClient.streamingMessages(streamUrl, (message: FlowMessage) => {
 	    if (!message.event.startsWith("activity"))
 		  addToMessageList(message)
 	    true 

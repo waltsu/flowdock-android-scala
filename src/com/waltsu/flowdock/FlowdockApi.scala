@@ -1,27 +1,33 @@
 package com.waltsu.flowdock
 
-import com.loopj.android.http._
-import android.util.Log
-import scala.util.parsing.json.JSON
-import scala.concurrent.{ Future, future, promise }
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{ Failure, Success }
-import com.waltsu.flowdock.models.Flow
-import com.waltsu.flowdock.models.Flow
-import com.waltsu.flowdock.models.FlowMessage
-import org.json.JSONArray
-import org.json.JSONObject
-import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.auth.Credentials
-import org.apache.http.auth.UsernamePasswordCredentials
-import org.apache.http.auth.AuthScope
-import org.apache.http.client.methods.HttpGet
-import java.net.URI
-import org.apache.http.HttpResponse
+import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.io.BufferedReader
+import java.net.URI
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.future
+import scala.concurrent.promise
+import scala.util.Failure
+import scala.util.Success
+
+import org.apache.http.HttpResponse
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.Credentials
+import org.apache.http.auth.UsernamePasswordCredentials
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.DefaultHttpClient
+import org.json.JSONArray
+import org.json.JSONObject
+
+import com.loopj.android.http.AsyncHttpClient
+import com.loopj.android.http.AsyncHttpResponseHandler
+import com.waltsu.flowdock.models.Flow
+import com.waltsu.flowdock.models.FlowMessage
 import com.waltsu.flowdock.models.ModelBuilders
+
+import android.util.Log
 
 // TODO: Some sort of cache
 object FlowdockApi {
@@ -40,39 +46,6 @@ object FlowdockApi {
   persistentClient.addHeader("Connection", "Keep-Alive")
     
   val baseUrl = "https://api.flowdock.com"
-    
-  def streamingMessages(flowUrl: String, cb: (FlowMessage) => Boolean): Unit = future[Unit] {
-    Log.v("debug", "Streaming from: " + flowUrl)
-    val streamClient: DefaultHttpClient = new DefaultHttpClient()
-    val basicAuth: Credentials = new UsernamePasswordCredentials(apiToken, "")
-    streamClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), basicAuth)
-    val req: HttpGet = new HttpGet()
-
-    req.setHeader("Accept", "application/json")
-    req.setHeader("Content-Type", "application/json")
-    req.setHeader("Connection", "Keep-Alive")
-    req.setURI(new URI(flowUrl))
-
-    val response: HttpResponse = streamClient.execute(req)
-    val inStream: InputStream = response.getEntity().getContent()
-    val reader: BufferedReader = new BufferedReader(new InputStreamReader(inStream))
-    
-    def consumeLine(input: BufferedReader): Unit = {
-      val line = input.readLine()
-      if (line.startsWith("{")) {
-	    val rawMessage = utils.JSONObjectToMap(new JSONObject(line))
-	    val flowMessage = ModelBuilders.constructFlowMessage(rawMessage)
-	    val more = cb(flowMessage)
-	    if (!more)
-	      inStream.close()
-	    else
-	      consumeLine(input)
-      } else {
-        consumeLine(input)
-      }
-    }
-    consumeLine(reader)
-  }
     
   def getMessages(flowUrl: String): Future[List[FlowMessage]] = {
     val messagePromise = promise[List[FlowMessage]]  
