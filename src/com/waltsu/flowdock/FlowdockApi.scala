@@ -25,7 +25,7 @@ import java.io.BufferedReader
 // TODO: Some sort of cache
 object FlowdockApi {
   val client: AsyncHttpClient = new AsyncHttpClient()
-  val apiToken = "4e38bb9f024539cea526e87262999d35"
+  val apiToken = "change"
     
   client.setBasicAuth(apiToken, "")
   client.addHeader("Accept", "application/json")

@@ -24,7 +24,7 @@ class FlowActivity extends Activity {
 	    case newMessages =>
 	      messages = newMessages
 	      updateMessageList()
-	      scrollListToBottom(messageList)
+	      scrollMessageListToBottom()
 	  }
 	  Log.v("debug", "Starting to consume messages from stream")
 	  FlowdockApi.streamingMessages(streamUrl, (message: FlowMessage) => {
@@ -37,8 +37,8 @@ class FlowActivity extends Activity {
 	def messageList: ListView = findViewById(R.id.flowMessageList).asInstanceOf[ListView]
 	def updateMessageList() =
       utils.runOnUiThread(this, () => messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages)))
-     def scrollListToBottom(list: ListView) =
-       utils.runOnUiThread(this, () => list.setSelection(list.getAdapter().getCount() - 1))
+     def scrollMessageListToBottom() =
+       utils.runOnUiThread(this, () => messageList.setSelection(messageList.getAdapter().getCount() - 1))
 
 	def flowUrl =
 	  getIntent().getExtras().getString("flowUrl")
@@ -49,6 +49,6 @@ class FlowActivity extends Activity {
 	def addToMessageList(message: FlowMessage) = {
 	  messages = messages ::: List(message)
 	  updateMessageList()
-	  scrollListToBottom(messageList)
+	  scrollMessageListToBottom()
 	}
 }
