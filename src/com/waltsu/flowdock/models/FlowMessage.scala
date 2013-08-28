@@ -9,14 +9,23 @@ class FlowMessage(val event: String,
 				  val content: String,
 				  val user: String) {
   
-  def getContent: String = {
+  def canBeShown: Boolean = {
     event match {
+    case "message" => true
+    case "status" => true
+    case "comment" => true
+    case _ => false
+	}
+  }
+
+  def getContent: String = {
+    val body = event match {
       case "message" => content
       case "status" => content
       case "comment" => constructComment
-      case "action" => constructAction
       case _ => "Not implemented :( ("  + event + ")"
     }
+    user + ": " + body
   }
   
   def constructComment = {
@@ -29,13 +38,7 @@ class FlowMessage(val event: String,
       case Some(x) => x.toString
       case None => ""
     }
-    title + ": " + commentContent
-  }
-  
-  def constructAction = {
-    val contentMap = utils.JSONObjectToMap(new JSONObject(content))
-
-    "" 
+    title + ":\n" + commentContent
   }
 
 

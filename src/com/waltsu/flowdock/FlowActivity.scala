@@ -10,6 +10,17 @@ import com.waltsu.flowdock.models.FlowMessage
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
 
+    def replaceMessageModels(newMessages: List[FlowMessage]) = {
+      messages = newMessages.filter((flowMessage) => flowMessage.canBeShown)
+    }
+
+	def flowUrl =
+	  getIntent().getExtras().getString("flowUrl")
+	def streamUrl =
+	  // Ugly :(
+	  flowUrl.replace("https://api", "https://stream")
+	  
+
 	override def onCreate(savedInstance: Bundle): Unit = {
 	  super.onCreate(savedInstance)
 	  setContentView(R.layout.activity_flow)
@@ -22,7 +33,7 @@ class FlowActivity extends Activity {
 	  
 	  FlowdockApi.getMessages(flowUrl) onSuccess {
 	    case newMessages =>
-	      messages = newMessages
+	      replaceMessageModels(newMessages)
 	      updateMessageList()
 	      scrollMessageListToBottom()
 	  }
@@ -35,19 +46,15 @@ class FlowActivity extends Activity {
 	}
 	
 	def messageList: ListView = findViewById(R.id.flowMessageList).asInstanceOf[ListView]
+
 	def updateMessageList() =
       utils.runOnUiThread(this, () => messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages)))
-     def scrollMessageListToBottom() =
-       utils.runOnUiThread(this, () => messageList.setSelection(messageList.getAdapter().getCount() - 1))
 
-	def flowUrl =
-	  getIntent().getExtras().getString("flowUrl")
-	def streamUrl =
-	  // Ugly :(
-	  flowUrl.replace("https://api", "https://stream")
-	  
+    def scrollMessageListToBottom() =
+      utils.runOnUiThread(this, () => messageList.setSelection(messageList.getAdapter().getCount() - 1))
+
 	def addToMessageList(message: FlowMessage) = {
-	  messages = messages ::: List(message)
+	  replaceMessageModels(messages ::: List(message))
 	  updateMessageList()
 	  scrollMessageListToBottom()
 	}

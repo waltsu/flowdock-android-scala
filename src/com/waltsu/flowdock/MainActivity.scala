@@ -37,10 +37,13 @@ class MainActivity extends Activity {
 	
 	override def onResume(): Unit = {
 	  super.onResume();
-	  
+
 	  FlowdockApi.getFlows() onSuccess {
 	    case flows =>
           utils.runOnUiThread(this, () => flowList.setAdapter(flowListAdapter(flows)))
+	  }
+	  FlowdockApi.getUsers onSuccess {
+	    case users => ApplicationState.currentUsers = users
 	  }
 	}
 	

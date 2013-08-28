@@ -31,8 +31,8 @@ object utils {
   def JSONObjectToMap(json: JSONObject) = {
     var map: Map[String, Any] = Map[String, Any]()
     json.keys().foldLeft[Map[String, Any]](map)((acc, k: Any) => {
-      val ks = k.toString()
-      map(ks) = json.get(ks) 
+      val keyString = k.toString()
+      map(keyString) = json.get(keyString) 
       map
     }).toMap
       

@@ -4,14 +4,10 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URI
-
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.future
-import scala.concurrent.promise
+import scala.concurrent._
 import scala.util.Failure
 import scala.util.Success
-
 import org.apache.http.HttpResponse
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.Credentials
@@ -20,27 +16,48 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
-
 import com.loopj.android.http.AsyncHttpClient
 import com.loopj.android.http.AsyncHttpResponseHandler
 import com.waltsu.flowdock.models.Flow
 import com.waltsu.flowdock.models.FlowMessage
 import com.waltsu.flowdock.models.ModelBuilders
-
 import android.util.Log
+import com.waltsu.flowdock.models.User
 
 // TODO: Some sort of cache
 object FlowdockApi {
   val client: AsyncHttpClient = new AsyncHttpClient()
   //val apiToken = "change"
   val apiToken = "bf8c52b76b17f275d4a9e37189847ae6"
+
+  val baseUrl = "https://api.flowdock.com"
+  var currentUsers = List[User]()
     
   client.setBasicAuth(apiToken, "")
   client.addHeader("Accept", "application/json")
   client.addHeader("Content-Type", "application/json")
   
-  val baseUrl = "https://api.flowdock.com"
-    
+  def getUsers(): Future[List[User]] = {
+    val usersPromise = promise[List[User]] 
+    getRequest(baseUrl + "/users") onComplete {
+      case Success(response) => {
+        val users = utils.JSONArrayToList(new JSONArray(response))
+        val usersList = users.map((k: Any) => {
+          k match {
+            case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+            case _ => Map[String, Any]()
+          }
+        })
+        val userModels = usersList.map((u) => {
+          ModelBuilders.constructUser(u)
+        })
+        usersPromise success userModels
+      }
+      case Failure(throwable) => usersPromise failure throwable
+    }
+    usersPromise.future
+  } 
+
   def getMessages(flowUrl: String): Future[List[FlowMessage]] = {
     val messagePromise = promise[List[FlowMessage]]  
     getRequest(flowUrl + "/messages")  onComplete {
@@ -74,9 +91,7 @@ object FlowdockApi {
           }
         })
         val flowModels = flowList.map((f: Map[String, Any]) => {
-          val name = f.get("name")
-          val apiUrl = f.get("url")
-          new Flow(name.get.toString, apiUrl.get.toString)
+          ModelBuilders.constructFlow(f)
         })
         flowPromise success(flowModels)
       }
