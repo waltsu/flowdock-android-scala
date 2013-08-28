@@ -9,6 +9,18 @@ import scala.util.{ Failure, Success }
 import com.waltsu.flowdock.models.Flow
 import com.waltsu.flowdock.models.Flow
 import com.waltsu.flowdock.models.FlowMessage
+import org.json.JSONArray
+import org.json.JSONObject
+import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.auth.Credentials
+import org.apache.http.auth.UsernamePasswordCredentials
+import org.apache.http.auth.AuthScope
+import org.apache.http.client.methods.HttpGet
+import java.net.URI
+import org.apache.http.HttpResponse
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.BufferedReader
 
 // TODO: Some sort of cache
 object FlowdockApi {
@@ -18,27 +30,68 @@ object FlowdockApi {
   client.setBasicAuth(apiToken, "")
   client.addHeader("Accept", "application/json")
   client.addHeader("Content-Type", "application/json")
+  
+  val persistentClient: AsyncHttpClient = new AsyncHttpClient()
+  persistentClient.setBasicAuth(apiToken, "")
+  persistentClient.addHeader("Accept", "application/json")
+  persistentClient.addHeader("Content-Type", "application/json")
+  persistentClient.addHeader("Connection", "Keep-Alive")
     
   val baseUrl = "https://api.flowdock.com"
+    
+  def streamingMessages(flowUrl: String, cb: (FlowMessage) => Boolean): Unit = future[Unit] {
+    Log.v("debug", "Streaming from: " + flowUrl)
+    val streamClient: DefaultHttpClient = new DefaultHttpClient()
+    val basicAuth: Credentials = new UsernamePasswordCredentials(apiToken, "")
+    streamClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), basicAuth)
+    val req: HttpGet = new HttpGet()
+
+    req.setHeader("Accept", "application/json")
+    req.setHeader("Content-Type", "application/json")
+    req.setHeader("Connection", "Keep-Alive")
+    req.setURI(new URI(flowUrl))
+
+    val response: HttpResponse = streamClient.execute(req)
+    val inStream: InputStream = response.getEntity().getContent()
+    val reader: BufferedReader = new BufferedReader(new InputStreamReader(inStream))
+    
+    // More functional approach needed
+    var running: Boolean = true
+    do {
+      val line = reader.readLine()  
+      Log.v("debug", "Got line: " + line)
+      if (line.startsWith("{")) {
+	    val rawMessage = utils.JSONObjectToMap(new JSONObject(line))
+	    val event = rawMessage.get("event")
+	    val sent = rawMessage.get("sent")
+	    val content = rawMessage.get("content")
+	    val flowMessage = new FlowMessage(event.get.toString, sent.get.asInstanceOf[Long], content.get.toString)
+		running = cb(flowMessage)
+      }
+    } while (running)
+    Log.v("debug", "Stopped for listening stream")
+      
+    inStream.close()
+  }
     
   def getMessages(flowUrl: String): Future[List[FlowMessage]] = {
     val messagePromise = promise[List[FlowMessage]]  
     getRequest(flowUrl + "/messages")  onComplete {
       case Success(response) => {
-        val messages = JSON.parseFull(response)
-        messages match {
-          case Some(messageJson) =>
-            val messageList = messageJson.asInstanceOf[List[Map[String, Any]]]
-            val messageModels = messageList.map((m: Map[String, Any]) => {
-              val event = m.get("event")
-              val sent = m.get("sent")
-              val content = m.get("content")
-              new FlowMessage(event.get.toString, sent.get.asInstanceOf[Double], content.get.toString)
-            })
-            messagePromise success List[FlowMessage]()
-          case None =>
-            messagePromise failure new Exception("No messages")
-        }
+        val messages = utils.JSONArrayToList(new JSONArray(response))
+        val messageList = messages.map((k: Any) => {
+          k match {
+            case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+            case _ => Map[String, Any]()
+          }
+        })
+        val messageModels = messageList.map((m: Map[String, Any]) => {
+          val event = m.get("event")
+          val sent = m.get("sent")
+          val content = m.get("content")
+          new FlowMessage(event.get.toString, sent.get.asInstanceOf[Long], content.get.toString)
+        })
+        messagePromise success messageModels
       }
       case Failure(throwable) => messagePromise failure throwable
     }
@@ -49,20 +102,19 @@ object FlowdockApi {
     val flowPromise = promise[List[Flow]]
     getRequest(baseUrl + "/flows") onComplete {
       case Success(response) => {
-        val flows = JSON.parseFull(response)
-        flows match {
-          case Some(flowJson) =>
-            val flowList = flowJson.asInstanceOf[List[Map[String, Any]]]
-            val flowModels = flowList.map((f: Map[String, Any]) => {
-              val name = f.get("name")
-              val apiUrl = f.get("url")
-              new Flow(name.get.toString, apiUrl.get.toString)
-	        })
-            flowPromise success(flowModels)
-          case None =>
-            flowPromise failure new Exception("No flows") 
-          
-        }
+        val flows = utils.JSONArrayToList(new JSONArray(response))
+        val flowList = flows.map((k: Any) => {
+          k match {
+            case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+            case _ => Map[String, Any]()
+          }
+        })
+        val flowModels = flowList.map((f: Map[String, Any]) => {
+          val name = f.get("name")
+          val apiUrl = f.get("url")
+          new Flow(name.get.toString, apiUrl.get.toString)
+        })
+        flowPromise success(flowModels)
       }
       case Failure(throwable) => flowPromise failure throwable
     }

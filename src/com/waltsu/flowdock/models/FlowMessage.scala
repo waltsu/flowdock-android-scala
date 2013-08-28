@@ -4,7 +4,7 @@ import scala.util.parsing.json.JSON
 
 case class StringAny(k: String, a: Any)
 class FlowMessage(val event: String, 	
-				  val sent: Double,
+				  val sent: Long,
 				  val content: String) {
   
   def getContent: String = {

@@ -2,12 +2,15 @@ tmp/
 # built application files
 *.apk
 *.ap_
+target/
 
 # files for the dex VM
 *.dex
 
 # Java class files
 *.class
+
+.worksheet/
 
 # generated files
 bin/
