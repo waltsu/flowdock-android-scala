@@ -21,6 +21,7 @@ import org.apache.http.HttpResponse
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.BufferedReader
+import com.waltsu.flowdock.models.ModelBuilders
 
 // TODO: Some sort of cache
 object FlowdockApi {
@@ -60,10 +61,7 @@ object FlowdockApi {
       val line = input.readLine()
       if (line.startsWith("{")) {
 	    val rawMessage = utils.JSONObjectToMap(new JSONObject(line))
-	    val event = rawMessage.get("event")
-	    val sent = rawMessage.get("sent")
-	    val content = rawMessage.get("content")
-	    val flowMessage = new FlowMessage(event.get.toString, sent.get.asInstanceOf[Long], content.get.toString)
+	    val flowMessage = ModelBuilders.constructFlowMessage(rawMessage)
 	    val more = cb(flowMessage)
 	    if (!more)
 	      inStream.close()
@@ -88,10 +86,7 @@ object FlowdockApi {
           }
         })
         val messageModels = messageList.map((m: Map[String, Any]) => {
-          val event = m.get("event")
-          val sent = m.get("sent")
-          val content = m.get("content")
-          new FlowMessage(event.get.toString, sent.get.asInstanceOf[Long], content.get.toString)
+          ModelBuilders.constructFlowMessage(m)
         })
         messagePromise success messageModels
       }
