@@ -67,11 +67,10 @@ class MainActivity extends Activity {
 	
 	def flowList: ListView = findViewById(R.id.flowList).asInstanceOf[ListView]
 	def toggleLoading(visible: Boolean) = {
-	 menuProgress match {
+	  menuProgress match {
 	   case Some(item) => utils.runOnUiThread(MainActivity.this, () => item.setVisible(visible))
 	   case None => Log.v("debug", "No menu item available")
-	   
-	 }
+	  }
 	}
 	
 	def flowListAdapter(flows: List[Flow]): ArrayAdapter[Flow] = {

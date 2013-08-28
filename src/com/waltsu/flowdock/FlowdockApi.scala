@@ -27,12 +27,11 @@ import com.waltsu.flowdock.models.User
 // TODO: Some sort of cache
 object FlowdockApi {
   val client: AsyncHttpClient = new AsyncHttpClient()
-  val apiToken = "change"
 
   val baseUrl = "https://api.flowdock.com"
   var currentUsers = List[User]()
     
-  client.setBasicAuth(apiToken, "")
+  client.setBasicAuth(ApplicationState.apiToken, "")
   client.addHeader("Accept", "application/json")
   client.addHeader("Content-Type", "application/json")
   

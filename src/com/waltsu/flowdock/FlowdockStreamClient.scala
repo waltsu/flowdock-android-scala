@@ -18,12 +18,13 @@ import java.net.URI
 import org.apache.http.auth.Credentials
 
 object FlowdockStreamClient {
-  val apiToken = "bf8c52b76b17f275d4a9e37189847ae6"
-
+  /*
+   * Handle scenarios like terminated connection etc.
+   */
   def streamingMessages(flowUrl: String, cb: (FlowMessage) => Boolean): Unit = future[Unit] {
     Log.v("debug", "Streaming from: " + flowUrl)
     val streamClient: DefaultHttpClient = new DefaultHttpClient()
-    val basicAuth: Credentials = new UsernamePasswordCredentials(apiToken, "")
+    val basicAuth: Credentials = new UsernamePasswordCredentials(ApplicationState.apiToken, "")
     streamClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), basicAuth)
     val req: HttpGet = new HttpGet()
 

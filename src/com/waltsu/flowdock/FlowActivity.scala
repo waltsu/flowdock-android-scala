@@ -6,9 +6,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.ListView
 import com.waltsu.flowdock.models.FlowMessage
+import android.view.Menu
+import android.view.MenuItem
 
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
+    var menuProgress: Option[MenuItem] = None
 
     def replaceMessageModels(newMessages: List[FlowMessage]) = {
       messages = newMessages.filter((flowMessage) => flowMessage.canBeShown)
@@ -30,15 +33,31 @@ class FlowActivity extends Activity {
 	  setTitle(flowName)
 	}
 	
+	override def onCreateOptionsMenu(menu: Menu): Boolean = {
+	  getMenuInflater().inflate(R.menu.loading_menu, menu)
+	  val menuItem = menu.findItem(R.id.menuItemProgress).asInstanceOf[MenuItem]
+	  menuProgress = menuItem match {
+	    case null => None
+	    case m => Some(m)
+	  }
+	  true
+
+	}
+	
 	override def onResume: Unit = {
 	  super.onResume()
-	  
-	  FlowdockApi.getMessages(flowUrl) onSuccess {
+	  val messagesPromise = FlowdockApi.getMessages(flowUrl)
+	  messagesPromise onSuccess {
 	    case newMessages =>
 	      replaceMessageModels(newMessages)
 	      updateMessageList()
 	      scrollMessageListToBottom()
 	  }
+	  
+	  for {
+	    messagesDone <- messagesPromise
+	  } yield toggleLoading(false)
+
 	  Log.v("debug", "Starting to consume messages from stream")
 	  FlowdockStreamClient.streamingMessages(streamUrl, (message: FlowMessage) => {
 	    if (!message.event.startsWith("activity"))
@@ -59,5 +78,12 @@ class FlowActivity extends Activity {
 	  replaceMessageModels(messages ::: List(message))
 	  updateMessageList()
 	  scrollMessageListToBottom()
+	}
+
+	def toggleLoading(visible: Boolean) = {
+	  menuProgress match {
+	   case Some(item) => utils.runOnUiThread(FlowActivity.this, () => item.setVisible(visible))
+	   case None => Log.v("debug", "No menu item available")
+	  }
 	}
 }

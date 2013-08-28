@@ -9,5 +9,6 @@ import com.waltsu.flowdock.models.User
  */
 object ApplicationState {
   var currentUsers: List[User] = List()
+  val apiToken = "change"
   
 }
