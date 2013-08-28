@@ -7,7 +7,7 @@ import android.util.Log
 class FlowMessage(val event: String, 	
 				  val sent: Long,
 				  val content: String,
-				  val user: String) {
+				  val userName: String) {
   
   def canBeShown: Boolean = {
     event match {
@@ -25,7 +25,7 @@ class FlowMessage(val event: String,
       case "comment" => constructComment
       case _ => "Not implemented :( ("  + event + ")"
     }
-    user + ": " + body
+    userName + ": " + body
   }
   
   def constructComment = {

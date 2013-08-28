@@ -1,5 +1,7 @@
 package com.waltsu.flowdock.models
 
+import com.waltsu.flowdock.ApplicationState
+
 object ModelBuilders {
 
   // TODO: Better handling of Any
@@ -12,7 +14,11 @@ object ModelBuilders {
     val event = m.get("event").get.toString
 	val sent = m.get("sent").get.asInstanceOf[Long]
 	val content = m.get("content").get.toString
-	val user = m.get("user").get.toString
+	val userId = m.get("user").get.toString
+	val user = ApplicationState.currentUsers.find((u: User) => u.id == userId) match {
+      case Some(u) => u.name
+      case None => ""
+    }
 	new FlowMessage(event, sent, content, user)
 	}
   

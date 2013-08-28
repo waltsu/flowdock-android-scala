@@ -27,8 +27,7 @@ import com.waltsu.flowdock.models.User
 // TODO: Some sort of cache
 object FlowdockApi {
   val client: AsyncHttpClient = new AsyncHttpClient()
-  //val apiToken = "change"
-  val apiToken = "bf8c52b76b17f275d4a9e37189847ae6"
+  val apiToken = "change"
 
   val baseUrl = "https://api.flowdock.com"
   var currentUsers = List[User]()
