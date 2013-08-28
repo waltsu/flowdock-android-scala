@@ -56,23 +56,24 @@ object FlowdockApi {
     val inStream: InputStream = response.getEntity().getContent()
     val reader: BufferedReader = new BufferedReader(new InputStreamReader(inStream))
     
-    // More functional approach needed
-    var running: Boolean = true
-    do {
-      val line = reader.readLine()  
-      Log.v("debug", "Got line: " + line)
+    def consumeLine(input: BufferedReader): Unit = {
+      val line = input.readLine()
       if (line.startsWith("{")) {
 	    val rawMessage = utils.JSONObjectToMap(new JSONObject(line))
 	    val event = rawMessage.get("event")
 	    val sent = rawMessage.get("sent")
 	    val content = rawMessage.get("content")
 	    val flowMessage = new FlowMessage(event.get.toString, sent.get.asInstanceOf[Long], content.get.toString)
-		running = cb(flowMessage)
+	    val more = cb(flowMessage)
+	    if (!more)
+	      inStream.close()
+	    else
+	      consumeLine(input)
+      } else {
+        consumeLine(input)
       }
-    } while (running)
-    Log.v("debug", "Stopped for listening stream")
-      
-    inStream.close()
+    }
+    consumeLine(reader)
   }
     
   def getMessages(flowUrl: String): Future[List[FlowMessage]] = {
