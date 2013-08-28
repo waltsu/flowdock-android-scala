@@ -39,12 +39,6 @@ object FlowdockApi {
   client.addHeader("Accept", "application/json")
   client.addHeader("Content-Type", "application/json")
   
-  val persistentClient: AsyncHttpClient = new AsyncHttpClient()
-  persistentClient.setBasicAuth(apiToken, "")
-  persistentClient.addHeader("Accept", "application/json")
-  persistentClient.addHeader("Content-Type", "application/json")
-  persistentClient.addHeader("Connection", "Keep-Alive")
-    
   val baseUrl = "https://api.flowdock.com"
     
   def getMessages(flowUrl: String): Future[List[FlowMessage]] = {
