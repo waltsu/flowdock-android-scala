@@ -19,13 +19,15 @@ class FlowActivity extends Activity {
 	def streamUrl =
 	  // Ugly :(
 	  flowUrl.replace("https://api", "https://stream")
+	def flowName =
+	  getIntent().getExtras().getString("flowName")
 	  
 
 	override def onCreate(savedInstance: Bundle): Unit = {
 	  super.onCreate(savedInstance)
 	  setContentView(R.layout.activity_flow)
 	  
-	  setTitle("Change to flow name")
+	  setTitle(flowName)
 	}
 	
 	override def onResume: Unit = {

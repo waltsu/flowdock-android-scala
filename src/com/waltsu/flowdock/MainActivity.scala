@@ -24,6 +24,7 @@ class MainActivity extends Activity {
 	      val selectedFlow: Flow = flowList.getAdapter().getItem(pos).asInstanceOf[Flow]
 	      val flowIntent: Intent = new Intent(MainActivity.this, classOf[FlowActivity])
 	      flowIntent.putExtra("flowUrl", selectedFlow.apiUrl)
+	      flowIntent.putExtra("flowName", selectedFlow.name)
 	      startActivity(flowIntent)
 	    }
 	  })
