@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
+  <item android:id="@+id/menuInputAPIKey"
+      android:title="API key"
+      android:showAsAction="always"
+      android:visible="true" />    
+
   <item android:id="@+id/menuItemProgress"
       android:actionLayout="@layout/progress_item"
       android:showAsAction="always"

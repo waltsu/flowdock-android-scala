@@ -24,14 +24,15 @@ import com.waltsu.flowdock.models.ModelBuilders
 import android.util.Log
 import com.waltsu.flowdock.models.User
 import com.loopj.android.http.RequestParams
+import android.content.Context
 
 // TODO: Some sort of cache
 object FlowdockApi {
   val baseUrl = "https://api.flowdock.com"
     
-  def getUsers(): Future[List[User]] = {
+  def getUsers(c: Context): Future[List[User]] = {
     val usersPromise = promise[List[User]] 
-    RESTClient.getRequest(baseUrl + "/users", (res) => {
+    RESTClient.getRequest(c, baseUrl + "/users", (res) => {
       res match {
 	    case Some(response) => {
           val users = utils.JSONArrayToList(new JSONArray(response))
@@ -52,8 +53,8 @@ object FlowdockApi {
     usersPromise.future
   } 
 
-  def getMessages(flowUrl: String, cb: (Option[List[FlowMessage]]) => Unit) = {
-    RESTClient.getRequest(flowUrl + "/messages", (res) => {
+  def getMessages(c: Context, flowUrl: String, cb: (Option[List[FlowMessage]]) => Unit) = {
+    RESTClient.getRequest(c, flowUrl + "/messages", (res) => {
       res match {
 	    case Some(response) => {
 	      val messages = utils.JSONArrayToList(new JSONArray(response))
@@ -73,9 +74,9 @@ object FlowdockApi {
     })
   }
   
-  def sendMessage(flowUrl: String, message: FlowMessage, cb: (Boolean) => Unit) = {
+  def sendMessage(c: Context, flowUrl: String, message: FlowMessage, cb: (Boolean) => Unit) = {
     val messageData = Map("event" -> message.event, "content" -> message.content) 
-    RESTClient.postRequest(flowUrl + "/messages", messageData, (res) => {
+    RESTClient.postRequest(c, flowUrl + "/messages", messageData, (res) => {
       res match {
         case Some(response) => cb(true)
         case None => cb(false)
@@ -83,9 +84,9 @@ object FlowdockApi {
     })
   }
 
-  def getFlows(): Future[List[Flow]] = {
+  def getFlows(c: Context): Future[List[Flow]] = {
     val flowPromise = promise[List[Flow]]
-    RESTClient.getRequest(baseUrl + "/flows", (res) => {
+    RESTClient.getRequest(c, baseUrl + "/flows", (res) => {
       res match {
 	    case Some(response) => {
 	      val flows = utils.JSONArrayToList(new JSONArray(response))

@@ -16,6 +16,9 @@ import scala.concurrent._
 import com.waltsu.flowdock.models.Flow
 import android.content.Intent
 import android.view.MenuItem
+import android.app.AlertDialog
+import android.widget.EditText
+import android.content.DialogInterface
 
 class MainActivity extends Activity {
 	var menuProgress: Option[MenuItem] = None
@@ -45,10 +48,34 @@ class MainActivity extends Activity {
 	  true
 	}
 	
+	override def onOptionsItemSelected(item: MenuItem): Boolean = {
+	  item.getItemId() match {
+	    case R.id.menuInputAPIKey => 
+	      openAPIKeyModal
+	      true
+	    case _ => false
+	  }
+	}
+	
 	override def onResume(): Unit = {
 	  super.onResume();
-	  val flowPromise = FlowdockApi.getFlows()
-	  val usersPromise = FlowdockApi.getUsers()
+	  if (ApplicationState.isApiTokenSet(this))
+	    fetchServerData
+      else
+        openAPIKeyModal
+	}
+	
+	def flowList: ListView = findViewById(R.id.flowList).asInstanceOf[ListView]
+	
+	def flowListAdapter(flows: List[Flow]): ArrayAdapter[Flow] = {
+	  new FlowAdapter(getApplicationContext(), flows)
+	}
+	
+	def fetchServerData = {
+	  toggleLoading(true)
+
+	  val flowPromise = FlowdockApi.getFlows(this)
+	  val usersPromise = FlowdockApi.getUsers(this)
 	  
 	  flowPromise onSuccess {
 	    case flows =>
@@ -58,22 +85,38 @@ class MainActivity extends Activity {
 	    case users => 
 	      ApplicationState.currentUsers = users
 	  } 
+	  flowPromise onFailure { case f => toggleLoading(false) }
+	  usersPromise onFailure { case f => toggleLoading(false) }
 	  
 	  for {
 	    flowDone <- flowPromise
 	    usersDone <- usersPromise
 	  } yield toggleLoading(false)
+	  
 	}
-	
-	def flowList: ListView = findViewById(R.id.flowList).asInstanceOf[ListView]
+	def openAPIKeyModal = {
+	  val input = new EditText(this)
+	  input.setText(ApplicationState.apiToken(this))
+	  new AlertDialog.Builder(this)
+	    .setTitle("API-key")
+	    .setMessage("Please set API-key")
+	    .setView(input)
+	    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+	      override def onClick(dialog: DialogInterface, button: Int) {
+	        ApplicationState.setApiToken(MainActivity.this, input.getText().toString())
+	        Log.v("debug", "Api token set: " + input.getText().toString)
+	        fetchServerData
+	      } 
+	    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+	      override def onClick(dialog: DialogInterface, button: Int) {}
+	    })
+	    .show()
+	}
+
 	def toggleLoading(visible: Boolean) = {
 	  menuProgress match {
 	   case Some(item) => utils.runOnUiThread(MainActivity.this, () => item.setVisible(visible))
 	   case None => Log.v("debug", "No menu item available")
 	  }
-	}
-	
-	def flowListAdapter(flows: List[Flow]): ArrayAdapter[Flow] = {
-	  new FlowAdapter(getApplicationContext(), flows)
 	}
 }

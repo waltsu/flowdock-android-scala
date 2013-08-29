@@ -68,7 +68,7 @@ class FlowActivity extends Activity {
 	      inputEditText.setText("")
 	      toggleLoading(true)
 	      // Relying that message stream works so we don't need to update our list manually
-	      FlowdockApi.sendMessage(flowUrl, message, (success: Boolean) => {
+	      FlowdockApi.sendMessage(this, flowUrl, message, (success: Boolean) => {
 	        toggleLoading(false)
 	        success match {
 	          case true =>
@@ -83,10 +83,10 @@ class FlowActivity extends Activity {
 	override def onResume: Unit = {
 	  super.onResume()
 	  toggleLoading(true)
-	  FlowdockApi.getMessages(flowUrl, receiveNewMessages)
+	  FlowdockApi.getMessages(this, flowUrl, receiveNewMessages)
 
       Log.v("debug", "Starting to consume messages from stream")
-	  FlowdockStreamClient.streamingMessages(streamUrl, receiveNewMessage)
+	  FlowdockStreamClient.streamingMessages(this, streamUrl, receiveNewMessage)
 	  receiveMessages = true
 	}
 	

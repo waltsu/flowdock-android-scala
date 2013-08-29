@@ -17,17 +17,18 @@ import java.io.InputStreamReader
 import java.net.URI
 import org.apache.http.auth.Credentials
 import java.io.IOException
+import android.content.Context
 
 object FlowdockStreamClient {
   /*
    * Currently when encountering io-error tries to connect again. Some throttling/smarter reconnect logic needed!
    * This will drain the battery pretty fast
    */
-  def streamingMessages(flowUrl: String, cb: (FlowMessage) => Boolean): Unit = future[Unit] {
+  def streamingMessages(c: Context, flowUrl: String, cb: (FlowMessage) => Boolean): Unit = future[Unit] {
     Log.v("debug", "Streaming from: " + flowUrl)
     try {
 	  val streamClient: DefaultHttpClient = new DefaultHttpClient()
-	  val basicAuth: Credentials = new UsernamePasswordCredentials(ApplicationState.apiToken, "")
+	  val basicAuth: Credentials = new UsernamePasswordCredentials(ApplicationState.apiToken(c), "")
 	  streamClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), basicAuth)
 	  val req: HttpGet = new HttpGet()
 
@@ -61,7 +62,7 @@ object FlowdockStreamClient {
 	    Log.v("debug", "Got io exception: " + ioe.getMessage().toString())
 	    
 	    Log.v("debug", "Opening new connection")
-	    streamingMessages(flowUrl, cb)
+	    streamingMessages(c, flowUrl, cb)
 	}
   }
     

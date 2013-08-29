@@ -1,6 +1,8 @@
 package com.waltsu.flowdock
 
 import com.waltsu.flowdock.models.User
+import android.content.Context
+import android.content.SharedPreferences
 
 /*
  * Stores information of the application.
@@ -9,6 +11,12 @@ import com.waltsu.flowdock.models.User
  */
 object ApplicationState {
   var currentUsers: List[User] = List()
-  val apiToken = "change"
-  
+    
+  def isApiTokenSet(c: Context) = apiToken(c).length() > 0
+  def setApiToken(c: Context, token: String) = {
+    c.getSharedPreferences("prefs", 0).edit().putString("apiToken", token).commit()
+  }
+  def apiToken(c: Context) = {
+    c.getSharedPreferences("prefs", 0).getString("apiToken", "")
+  }
 }
