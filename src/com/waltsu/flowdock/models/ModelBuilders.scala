@@ -19,7 +19,7 @@ object ModelBuilders {
       case Some(u) => u.name
       case None => ""
     }
-	new FlowMessage(event, sent, content, user)
+	new FlowMessage(event, content, sent, user)
 	}
   
   def constructUser(m: Map[String, Any]): User = {

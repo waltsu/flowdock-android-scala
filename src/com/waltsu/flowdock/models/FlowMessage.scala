@@ -5,9 +5,9 @@ import org.json.JSONObject
 import android.util.Log
 
 class FlowMessage(val event: String, 	
-				  val sent: Long,
 				  val content: String,
-				  val userName: String) {
+				  val sent: Long = 0,
+				  val userName: String = "") {
   
   def canBeShown: Boolean = {
     event match {

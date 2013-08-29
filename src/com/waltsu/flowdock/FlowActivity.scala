@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.text.TextWatcher
 import android.text.Editable
+import android.widget.Toast
 
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
@@ -44,7 +45,8 @@ class FlowActivity extends Activity {
 	  
 	  inputEditText.addTextChangedListener(new TextWatcher() {
 	    override def afterTextChanged(et: Editable) = {
-	      menuSendMessage.setVisible(et.length() > 0)
+	      if (menuSendMessage != null)
+	      	menuSendMessage.setVisible(et.length() > 0)
 	    }
 	    override def beforeTextChanged(s: CharSequence, st: Int, c: Int, after: Int) = {}
 	    override def onTextChanged(s: CharSequence, st: Int, b: Int, c: Int) = {}
@@ -65,7 +67,17 @@ class FlowActivity extends Activity {
 	override def onOptionsItemSelected(item: MenuItem): Boolean = {
 	  item.getItemId() match {
 	    case R.id.menuItemSendMessage =>
-	      Log.v("debug", "Should do something")
+	      val text = inputEditText.getText().toString
+	      val message = new FlowMessage("message", text)
+	      inputEditText.setText("")
+	      toggleLoading(true)
+	      FlowdockApi.sendMessage(flowUrl, message, (success: Boolean) => {
+	        toggleLoading(false)
+	        success match {
+	          case true =>
+	          case false => Toast.makeText(FlowActivity.this, "Failed to send message", Toast.LENGTH_LONG).show()
+	        }  
+	      })
 	      true
 	    case _ => false
 	  }

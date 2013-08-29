@@ -23,21 +23,15 @@ import com.waltsu.flowdock.models.FlowMessage
 import com.waltsu.flowdock.models.ModelBuilders
 import android.util.Log
 import com.waltsu.flowdock.models.User
+import com.loopj.android.http.RequestParams
 
 // TODO: Some sort of cache
 object FlowdockApi {
-  val client: AsyncHttpClient = new AsyncHttpClient()
-
   val baseUrl = "https://api.flowdock.com"
-  var currentUsers = List[User]()
     
-  client.setBasicAuth(ApplicationState.apiToken, "")
-  client.addHeader("Accept", "application/json")
-  client.addHeader("Content-Type", "application/json")
-  
   def getUsers(): Future[List[User]] = {
     val usersPromise = promise[List[User]] 
-    getRequest(baseUrl + "/users", (res) => {
+    RESTClient.getRequest(baseUrl + "/users", (res) => {
       res match {
 	    case Some(response) => {
           val users = utils.JSONArrayToList(new JSONArray(response))
@@ -59,7 +53,7 @@ object FlowdockApi {
   } 
 
   def getMessages(flowUrl: String, cb: (Option[List[FlowMessage]]) => Unit) = {
-    getRequest(flowUrl + "/messages", (res) => {
+    RESTClient.getRequest(flowUrl + "/messages", (res) => {
       res match {
 	    case Some(response) => {
 	      val messages = utils.JSONArrayToList(new JSONArray(response))
@@ -78,10 +72,20 @@ object FlowdockApi {
       }
     })
   }
+  
+  def sendMessage(flowUrl: String, message: FlowMessage, cb: (Boolean) => Unit) = {
+    val messageData = Map("event" -> message.event, "content" -> message.content) 
+    RESTClient.postRequest(flowUrl + "/messages", messageData, (res) => {
+      res match {
+        case Some(response) => cb(true)
+        case None => cb(false)
+      }
+    })
+  }
 
   def getFlows(): Future[List[Flow]] = {
     val flowPromise = promise[List[Flow]]
-    getRequest(baseUrl + "/flows", (res) => {
+    RESTClient.getRequest(baseUrl + "/flows", (res) => {
       res match {
 	    case Some(response) => {
 	      val flows = utils.JSONArrayToList(new JSONArray(response))
@@ -102,19 +106,5 @@ object FlowdockApi {
     flowPromise.future
   }
 
-  private def getRequest(resource: String, cb: (Option[String]) => Unit) = {
-    Log.v("debug", "Getting: " + resource)
-    client.get(resource, new AsyncHttpResponseHandler() {
-    	override def onSuccess(response: String) = {
-    	  Log.v("debug", "Got response: " + response)
-    	  cb(Some(response))
-    	}
-    	override def onFailure(throwable: Throwable, error: String) = {
-    	  Log.v("debug", "Throwable: " + throwable.toString())
-    	  Log.v("debug", "Error: " + error)
-    	  cb(None)
-    	}
-    })
-  }
 
 }
