@@ -18,7 +18,7 @@ import android.widget.Toast
 
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
-    var menuProgress: Option[MenuItem] = None
+    var menuProgress: MenuItem = null
     var menuSendMessage: MenuItem = null
     var receiveMessages = true
 
@@ -55,11 +55,7 @@ class FlowActivity extends Activity {
 	
 	override def onCreateOptionsMenu(menu: Menu): Boolean = {
 	  getMenuInflater().inflate(R.menu.flow_menu, menu)
-	  val menuItem = menu.findItem(R.id.menuItemProgress).asInstanceOf[MenuItem]
-	  menuProgress = menuItem match {
-	    case null => None
-	    case m => Some(m)
-	  }
+	  menuProgress = menu.findItem(R.id.menuItemProgress).asInstanceOf[MenuItem]
 	  menuSendMessage = menu.findItem(R.id.menuItemSendMessage).asInstanceOf[MenuItem]
 	  true
 	}
@@ -87,18 +83,8 @@ class FlowActivity extends Activity {
 	override def onResume: Unit = {
 	  super.onResume()
 	  toggleLoading(true)
-	  FlowdockApi.getMessages(flowUrl, (messages) => {
-	    messages match {
-		  case Some(newMessages) => {
-		    replaceMessageModels(newMessages)
-		    updateMessageList()
-		    scrollMessageListToBottom()
-		    toggleLoading(false)
+	  FlowdockApi.getMessages(flowUrl, receiveNewMessages)
 
-		  }
-		  case None => Log.v("debug", "No messages")
-	    }
-	  })
       Log.v("debug", "Starting to consume messages from stream")
 	  FlowdockStreamClient.streamingMessages(streamUrl, receiveNewMessage)
 	  receiveMessages = true
@@ -115,6 +101,18 @@ class FlowActivity extends Activity {
 	    receiveMessages 
 	}
 	
+	def receiveNewMessages(messages: Option[List[FlowMessage]]) = {
+	  messages match {
+        case Some(newMessages) => {
+		  replaceMessageModels(newMessages)
+		  updateMessageList()
+		  scrollMessageListToBottom()
+		  toggleLoading(false)
+		}
+	    case None => Log.v("debug", "No messages")
+	  }
+	}
+	
 	def updateMessageList() =
       utils.runOnUiThread(this, () => messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages)))
 
@@ -128,9 +126,7 @@ class FlowActivity extends Activity {
 	}
 
 	def toggleLoading(visible: Boolean) = {
-	  menuProgress match {
-	   case Some(item) => utils.runOnUiThread(FlowActivity.this, () => item.setVisible(visible))
-	   case None => Log.v("debug", "No menu item available")
-	  }
+	  if (menuProgress != null)
+	    utils.runOnUiThread(FlowActivity.this, () => menuProgress.setVisible(visible))
 	}
 }
