@@ -1,13 +1,17 @@
 package com.waltsu.flowdock
 
-import android.app.Activity
 import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.util._
+
+import com.waltsu.flowdock.models.FlowMessage
+
+import android.app.Activity
 import android.os.Bundle
 import android.util.Log
-import android.widget.ListView
-import com.waltsu.flowdock.models.FlowMessage
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ListView
 
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
@@ -46,18 +50,18 @@ class FlowActivity extends Activity {
 	
 	override def onResume: Unit = {
 	  super.onResume()
-	  val messagesPromise = FlowdockApi.getMessages(flowUrl)
-	  messagesPromise onSuccess {
-	    case newMessages =>
-	      replaceMessageModels(newMessages)
-	      updateMessageList()
-	      scrollMessageListToBottom()
-	  }
-	  
-	  for {
-	    messagesDone <- messagesPromise
-	  } yield toggleLoading(false)
-
+	  FlowdockApi.getMessages(flowUrl, (messages) => {
+	    messages match {
+		  case Some(newMessages) => {
+		    replaceMessageModels(newMessages)
+		    updateMessageList()
+		    scrollMessageListToBottom()
+		    toggleLoading(false)
+		  }
+		  case None => Log.v("debug", "No messages")
+	    }
+	  })
+	    
 	  Log.v("debug", "Starting to consume messages from stream")
 	  FlowdockStreamClient.streamingMessages(streamUrl, (message: FlowMessage) => {
 	    if (!message.event.startsWith("activity"))

@@ -37,81 +37,84 @@ object FlowdockApi {
   
   def getUsers(): Future[List[User]] = {
     val usersPromise = promise[List[User]] 
-    getRequest(baseUrl + "/users") onComplete {
-      case Success(response) => {
-        val users = utils.JSONArrayToList(new JSONArray(response))
-        val usersList = users.map((k: Any) => {
-          k match {
-            case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
-            case _ => Map[String, Any]()
-          }
-        })
-        val userModels = usersList.map((u) => {
-          ModelBuilders.constructUser(u)
-        })
-        usersPromise success userModels
+    getRequest(baseUrl + "/users", (res) => {
+      res match {
+	    case Some(response) => {
+          val users = utils.JSONArrayToList(new JSONArray(response))
+          val usersList = users.map((k: Any) => {
+            k match {
+              case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+              case _ => Map[String, Any]()
+            }
+          })
+          val userModels = usersList.map((u) => {
+            ModelBuilders.constructUser(u)
+          })
+          usersPromise success userModels
+        }
+        case None => usersPromise failure new Exception("Error when fetching users")
       }
-      case Failure(throwable) => usersPromise failure throwable
-    }
+    })
     usersPromise.future
   } 
 
-  def getMessages(flowUrl: String): Future[List[FlowMessage]] = {
-    val messagePromise = promise[List[FlowMessage]]  
-    getRequest(flowUrl + "/messages")  onComplete {
-      case Success(response) => {
-        val messages = utils.JSONArrayToList(new JSONArray(response))
-        val messageList = messages.map((k: Any) => {
-          k match {
-            case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
-            case _ => Map[String, Any]()
-          }
-        })
-        val messageModels = messageList.map((m: Map[String, Any]) => {
-          ModelBuilders.constructFlowMessage(m)
-        })
-        messagePromise success messageModels
+  def getMessages(flowUrl: String, cb: (Option[List[FlowMessage]]) => Unit) = {
+    getRequest(flowUrl + "/messages", (res) => {
+      res match {
+	    case Some(response) => {
+	      val messages = utils.JSONArrayToList(new JSONArray(response))
+	      val messageList = messages.map((k: Any) => {
+	        k match {
+	          case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+	          case _ => Map[String, Any]()
+	        }
+	      })
+	      val messageModels = messageList.map((m: Map[String, Any]) => {
+	        ModelBuilders.constructFlowMessage(m)
+	      })
+	      cb(Some(messageModels))
+	    }
+	    case None => cb(None)
       }
-      case Failure(throwable) => messagePromise failure throwable
-    }
-    messagePromise.future
+    })
   }
 
   def getFlows(): Future[List[Flow]] = {
     val flowPromise = promise[List[Flow]]
-    getRequest(baseUrl + "/flows") onComplete {
-      case Success(response) => {
-        val flows = utils.JSONArrayToList(new JSONArray(response))
-        val flowList = flows.map((k: Any) => {
-          k match {
-            case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
-            case _ => Map[String, Any]()
-          }
-        })
-        val flowModels = flowList.map((f: Map[String, Any]) => {
-          ModelBuilders.constructFlow(f)
-        })
-        flowPromise success(flowModels)
+    getRequest(baseUrl + "/flows", (res) => {
+      res match {
+	    case Some(response) => {
+	      val flows = utils.JSONArrayToList(new JSONArray(response))
+	      val flowList = flows.map((k: Any) => {
+	        k match {
+	          case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+	          case _ => Map[String, Any]()
+	        }
+	      })
+	      val flowModels = flowList.map((f: Map[String, Any]) => {
+	        ModelBuilders.constructFlow(f)
+	      })
+	      flowPromise success(flowModels)
+	    }
+	    case None => flowPromise failure new Exception("Error when fetching flows")
       }
-      case Failure(throwable) => flowPromise failure throwable
-    }
+    })
     flowPromise.future
   }
 
-  private def getRequest(resource: String): Future [String]= {
+  private def getRequest(resource: String, cb: (Option[String]) => Unit) = {
     Log.v("debug", "Getting: " + resource)
-    val getPromise = promise[String]
     client.get(resource, new AsyncHttpResponseHandler() {
     	override def onSuccess(response: String) = {
     	  Log.v("debug", "Got response: " + response)
-    	  getPromise success response
+    	  cb(Some(response))
     	}
     	override def onFailure(throwable: Throwable, error: String) = {
+    	  Log.v("debug", "Throwable: " + throwable.toString())
     	  Log.v("debug", "Error: " + error)
-    	  getPromise failure(throwable)
+    	  cb(None)
     	}
     })
-    getPromise.future
   }
 
 }
