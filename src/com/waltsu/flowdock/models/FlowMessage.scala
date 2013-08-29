@@ -50,7 +50,7 @@ class FlowMessage(val event: String,
       case Some(x) => x.toString
       case None => ""
     }
-    val commentContent = contentMap.get("content") match {
+    val commentContent = contentMap.get("text") match {
       case Some(x) => x.toString
       case None => ""
     }
