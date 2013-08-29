@@ -24,9 +24,6 @@ class FlowMessageAdapter(c: Context, messages: List[FlowMessage])
 	extends ArrayAdapter[FlowMessage](c, R.layout.content_list_item, toJavaList[FlowMessage](messages)) {
   
   override def getView(pos: Int, convertView: View, parent: ViewGroup) = {
-    val view = super.getView(pos, convertView, parent)
-    val textView = view.findViewById(R.id.contentText).asInstanceOf[TextView]
-    textView.setText(messages(pos).getContent)
-    view
+    messages(pos).getView(getContext())
   }
 }

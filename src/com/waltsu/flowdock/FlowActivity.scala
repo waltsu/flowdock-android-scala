@@ -71,6 +71,7 @@ class FlowActivity extends Activity {
 	      val message = new FlowMessage("message", text)
 	      inputEditText.setText("")
 	      toggleLoading(true)
+	      // Relying that message stream works so we don't need to update our list manually
 	      FlowdockApi.sendMessage(flowUrl, message, (success: Boolean) => {
 	        toggleLoading(false)
 	        success match {
@@ -93,12 +94,13 @@ class FlowActivity extends Activity {
 		    scrollMessageListToBottom()
 		    toggleLoading(false)
 
-		    Log.v("debug", "Starting to consume messages from stream")
-		    FlowdockStreamClient.streamingMessages(streamUrl, receiveNewMessage)
 		  }
 		  case None => Log.v("debug", "No messages")
 	    }
 	  })
+      Log.v("debug", "Starting to consume messages from stream")
+	  FlowdockStreamClient.streamingMessages(streamUrl, receiveNewMessage)
+	  receiveMessages = true
 	}
 	
 	override def onPause = {
