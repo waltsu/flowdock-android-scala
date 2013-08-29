@@ -46,9 +46,10 @@ object FlowdockStreamClient {
 		  val rawMessage = utils.JSONObjectToMap(new JSONObject(line))
 		  val flowMessage = ModelBuilders.constructFlowMessage(rawMessage)
 		  val more = cb(flowMessage)
-		  if (!more)
+		  if (!more) {
+		    Log.v("debug", "Closing the stream")
 		    inStream.close()
-		  else
+		  } else
 		    consumeLine(input)
 		} else {
 	     consumeLine(input)

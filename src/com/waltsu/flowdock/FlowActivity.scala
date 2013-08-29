@@ -16,6 +16,7 @@ import android.widget.ListView
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
     var menuProgress: Option[MenuItem] = None
+    var receiveMessages = true
 
     def replaceMessageModels(newMessages: List[FlowMessage]) = {
       messages = newMessages.filter((flowMessage) => flowMessage.canBeShown)
@@ -66,10 +67,15 @@ class FlowActivity extends Activity {
 	  })
 	}
 	
+	override def onPause = {
+	  super.onPause()
+	  receiveMessages = false
+	}
+	
 	def receiveNewMessage(message: FlowMessage) = {
 	    if (!message.event.startsWith("activity"))
 		  addToMessageList(message)
-	    true 
+	    receiveMessages 
 	}
 	
 	def messageList: ListView = findViewById(R.id.flowMessageList).asInstanceOf[ListView]
