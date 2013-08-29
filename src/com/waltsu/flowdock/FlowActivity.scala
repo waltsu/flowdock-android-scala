@@ -57,17 +57,19 @@ class FlowActivity extends Activity {
 		    updateMessageList()
 		    scrollMessageListToBottom()
 		    toggleLoading(false)
+
+		    Log.v("debug", "Starting to consume messages from stream")
+		    FlowdockStreamClient.streamingMessages(streamUrl, receiveNewMessage)
 		  }
 		  case None => Log.v("debug", "No messages")
 	    }
 	  })
-	    
-	  Log.v("debug", "Starting to consume messages from stream")
-	  FlowdockStreamClient.streamingMessages(streamUrl, (message: FlowMessage) => {
+	}
+	
+	def receiveNewMessage(message: FlowMessage) = {
 	    if (!message.event.startsWith("activity"))
 		  addToMessageList(message)
 	    true 
-	  })
 	}
 	
 	def messageList: ListView = findViewById(R.id.flowMessageList).asInstanceOf[ListView]
