@@ -36,7 +36,7 @@ class MainActivity extends Activity {
 	}
 	
 	override def onCreateOptionsMenu(menu: Menu): Boolean = {
-	  getMenuInflater().inflate(R.menu.loading_menu, menu)
+	  getMenuInflater().inflate(R.menu.main_menu, menu)
 	  val menuItem = menu.findItem(R.id.menuItemProgress).asInstanceOf[MenuItem]
 	  menuProgress = menuItem match {
 	    case null => None

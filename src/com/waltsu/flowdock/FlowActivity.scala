@@ -1,21 +1,24 @@
 package com.waltsu.flowdock
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.util._
-
 import com.waltsu.flowdock.models.FlowMessage
-
 import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ListView
+import android.widget.EditText
+import android.view.View
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.text.TextWatcher
+import android.text.Editable
 
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
     var menuProgress: Option[MenuItem] = None
+    var menuSendMessage: MenuItem = null
     var receiveMessages = true
 
     def replaceMessageModels(newMessages: List[FlowMessage]) = {
@@ -30,23 +33,42 @@ class FlowActivity extends Activity {
 	def flowName =
 	  getIntent().getExtras().getString("flowName")
 	  
+	def messageList: ListView = findViewById(R.id.flowMessageList).asInstanceOf[ListView]
+	def inputEditText: EditText = findViewById(R.id.flowInputText).asInstanceOf[EditText]
 
 	override def onCreate(savedInstance: Bundle): Unit = {
 	  super.onCreate(savedInstance)
 	  setContentView(R.layout.activity_flow)
 	  
 	  setTitle(flowName)
+	  
+	  inputEditText.addTextChangedListener(new TextWatcher() {
+	    override def afterTextChanged(et: Editable) = {
+	      menuSendMessage.setVisible(et.length() > 0)
+	    }
+	    override def beforeTextChanged(s: CharSequence, st: Int, c: Int, after: Int) = {}
+	    override def onTextChanged(s: CharSequence, st: Int, b: Int, c: Int) = {}
+	  })
 	}
 	
 	override def onCreateOptionsMenu(menu: Menu): Boolean = {
-	  getMenuInflater().inflate(R.menu.loading_menu, menu)
+	  getMenuInflater().inflate(R.menu.flow_menu, menu)
 	  val menuItem = menu.findItem(R.id.menuItemProgress).asInstanceOf[MenuItem]
 	  menuProgress = menuItem match {
 	    case null => None
 	    case m => Some(m)
 	  }
+	  menuSendMessage = menu.findItem(R.id.menuItemSendMessage).asInstanceOf[MenuItem]
 	  true
-
+	}
+	
+	override def onOptionsItemSelected(item: MenuItem): Boolean = {
+	  item.getItemId() match {
+	    case R.id.menuItemSendMessage =>
+	      Log.v("debug", "Should do something")
+	      true
+	    case _ => false
+	  }
 	}
 	
 	override def onResume: Unit = {
@@ -78,8 +100,6 @@ class FlowActivity extends Activity {
 	    receiveMessages 
 	}
 	
-	def messageList: ListView = findViewById(R.id.flowMessageList).asInstanceOf[ListView]
-
 	def updateMessageList() =
       utils.runOnUiThread(this, () => messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages)))
 
