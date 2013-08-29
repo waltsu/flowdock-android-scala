@@ -86,6 +86,7 @@ class FlowActivity extends Activity {
 	
 	override def onResume: Unit = {
 	  super.onResume()
+	  toggleLoading(true)
 	  FlowdockApi.getMessages(flowUrl, (messages) => {
 	    messages match {
 		  case Some(newMessages) => {

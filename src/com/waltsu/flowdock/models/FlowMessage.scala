@@ -8,6 +8,8 @@ import android.view.LayoutInflater
 import com.waltsu.flowdock.R
 import android.content.Context
 import android.widget.TextView
+import java.util.Date
+import java.text.SimpleDateFormat
 
 class FlowMessage(val event: String, 	
 				  val content: String,
@@ -17,8 +19,10 @@ class FlowMessage(val event: String,
   
   def getView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.content_list_item, null)
-    val textView = view.findViewById(R.id.contentText).asInstanceOf[TextView]
-    textView.setText(getContent)
+    val header = view.findViewById(R.id.contentHeader).asInstanceOf[TextView]
+    val body = view.findViewById(R.id.contentBody).asInstanceOf[TextView]
+    header.setText(userName + timeRepresentation + ":")
+    body.setText(getContent)
     view
   }
   def canBeShown: Boolean = {
@@ -37,7 +41,7 @@ class FlowMessage(val event: String,
       case "comment" => constructComment
       case _ => "Not implemented :( ("  + event + ")"
     }
-    userName + ": " + body
+    body
   }
   
   def constructComment = {
@@ -52,6 +56,13 @@ class FlowMessage(val event: String,
     }
     title + ":\n" + commentContent
   }
+  
+  def timeRepresentation: String =
+    sent match {
+	  case 0 => ""
+	  case t => " (" + new SimpleDateFormat("HH:mm").format(new Date(t)) + ")"
+    }
+    
 
 
 }
