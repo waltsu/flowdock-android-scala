@@ -95,24 +95,22 @@ object FlowdockApi {
   }
 
   
-  private def messagesCallback(userCb: (Option[List[FlowMessage]]) => Unit): (Option[String]) => Unit = {
-    (res: Option[String]) => {
-      res match {
-        case Some(response) => {
-	      val messages = utils.JSONArrayToList(new JSONArray(response))
-	      val messageList = messages.map((k: Any) => {
-	        k match {
-	          case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
-	          case _ => Map[String, Any]()
-	        }
-	      })
-	      val messageModels = messageList.map((m: Map[String, Any]) => {
-	        ModelBuilders.constructFlowMessage(m)
-	      })
-	      userCb(Some(messageModels))
-	    }
-	    case None => userCb(None)
+  private def messagesCallback(userCb: (Option[List[FlowMessage]]) => Unit)(res: Option[String]) = {
+    res match {
+      case Some(response) => {
+    	val messages = utils.JSONArrayToList(new JSONArray(response))
+	    val messageList = messages.map((k: Any) => {
+	      k match {
+	        case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+	        case _ => Map[String, Any]()
+	      }
+	    })
+	    val messageModels = messageList.map((m: Map[String, Any]) => {
+	      ModelBuilders.constructFlowMessage(m)
+	    })
+	    userCb(Some(messageModels))
 	  }
-    }
+	  case None => userCb(None)
+	}
   }
 }
