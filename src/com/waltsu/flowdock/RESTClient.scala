@@ -48,6 +48,7 @@ object RESTClient {
     client.setBasicAuth(ApplicationState.apiToken(c), "")
     val requestParams = mapToRequestParams(params)
     Log.v("debug", "Getting: " + resource)
+    Log.v("debug", "Request params: " + requestParams.toString())
     client.get(resource, requestParams, new SimpleResponseHandler(c, cb))
     
   }

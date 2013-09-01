@@ -133,11 +133,13 @@ class FlowActivity extends Activity {
 	          addLastToMessageModels(newMessages)
 		  updateMessageList()
 		  scrollMessageListToBottom()
-		  toggleLoading(false)
-		  messagePullToRefreshListView.onRefreshComplete()
 		}
-	    case None => Log.v("debug", "No messages")
+	    case None => {
+	      Toast.makeText(FlowActivity.this, "Problem when fetching messages", Toast.LENGTH_LONG).show()
+	    }
 	  }
+	  toggleLoading(false)
+	  messagePullToRefreshListView.onRefreshComplete()
 	}
 	
 	def updateMessageList() =
