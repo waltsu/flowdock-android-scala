@@ -21,38 +21,45 @@ class SimpleResponseHandler(c: Context, cb: (Option[String]) => Unit) extends As
          Toast.makeText(c, "Invalid API-key", Toast.LENGTH_LONG).show()
         }
       }
+      case _ => Log.v("debug", "Other error!")
     }
     Log.v("debug", "Throwable: " + throwable.toString())
     Log.v("debug", "Error: " + error)
     cb(None)
  }
 }
-
 object RESTClient {
     val client: AsyncHttpClient = new AsyncHttpClient()
     client.addHeader("Accept", "application/json")
     client.addHeader("Content-Type", "application/json")
     
-    def postRequest(c: Context, resource: String, params: Map[String, String], cb: (Option[String]) => Unit) = {
-
+  def postRequest(c: Context, resource: String, params: Map[String, String], cb: (Option[String]) => Unit) = {
     client.setBasicAuth(ApplicationState.apiToken(c), "")
     Log.v("debug", "Posting: " + resource)
-    val requestParams = params match {
+    val requestParams = mapToRequestParams(params)
+    Log.v("debug", "RequestParams: " + requestParams.toString())
+    client.post(resource, requestParams, new SimpleResponseHandler(c, cb))
+  }
+  def getRequest(c: Context, resource: String, cb: (Option[String]) => Unit): Unit = {
+    getRequest(c, resource, null, cb)
+  }
+  
+  def getRequest(c: Context, resource: String, params: Map[String, String], cb: (Option[String]) => Unit): Unit = {
+    client.setBasicAuth(ApplicationState.apiToken(c), "")
+    val requestParams = mapToRequestParams(params)
+    Log.v("debug", "Getting: " + resource)
+    client.get(resource, requestParams, new SimpleResponseHandler(c, cb))
+    
+  }
+
+  private def mapToRequestParams(map: Map[String, String]): RequestParams = {
+    map match {
       case null => new RequestParams()
-      case _ => params.foldLeft[RequestParams](new RequestParams())({ case (acc, (k, v)) => {
+      case _ => map.foldLeft[RequestParams](new RequestParams())({ case (acc, (k, v)) => {
           acc.put(k, v)
           acc
         }
       })
-    }
-    Log.v("debug", "RequestParams: " + requestParams.toString())
-    client.post(resource, requestParams, new SimpleResponseHandler(c, cb))
+    } 
   }
-  def getRequest(c: Context, resource: String, cb: (Option[String]) => Unit) = {
-    client.setBasicAuth(ApplicationState.apiToken(c), "")
-    Log.v("debug", "Getting: " + resource)
-    client.get(resource, new SimpleResponseHandler(c, cb))
-  }
-
-
 }

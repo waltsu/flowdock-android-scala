@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat
 
 class FlowMessage(val event: String, 	
 				  val content: String,
+				  val id: String = "",
 				  val sent: Long = 0,
 				  val userName: String = "") {
   

@@ -14,12 +14,13 @@ object ModelBuilders {
     val event = m.get("event").get.toString
 	val sent = m.get("sent").get.asInstanceOf[Long]
 	val content = m.get("content").get.toString
+	val id = m.get("id").get.toString
 	val userId = m.get("user").get.toString
 	val user = ApplicationState.currentUsers.find((u: User) => u.id == userId) match {
       case Some(u) => u.name
       case None => ""
     }
-	new FlowMessage(event, content, sent, user)
+	new FlowMessage(event, content, id, sent, user)
 	}
   
   def constructUser(m: Map[String, Any]): User = {

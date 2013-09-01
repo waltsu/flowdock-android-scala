@@ -15,6 +15,9 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.text.TextWatcher
 import android.text.Editable
 import android.widget.Toast
+import com.handmark.pulltorefresh.library.PullToRefreshListView
+import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener
+import com.handmark.pulltorefresh.library.PullToRefreshBase
 
 class FlowActivity extends Activity {
     var messages = List[FlowMessage]()
@@ -25,6 +28,13 @@ class FlowActivity extends Activity {
     def replaceMessageModels(newMessages: List[FlowMessage]) = {
       messages = newMessages.filter((flowMessage) => flowMessage.canBeShown)
     }
+    def addFirstToMessageModels(newMessages: List[FlowMessage]) = {
+      replaceMessageModels(newMessages ::: messages)  
+    }
+	def addLastToMessageModels(newMessages: List[FlowMessage]) = {
+	  replaceMessageModels(messages ::: newMessages)
+	}
+
 
 	def flowUrl =
 	  getIntent().getExtras().getString("flowUrl")
@@ -34,7 +44,8 @@ class FlowActivity extends Activity {
 	def flowName =
 	  getIntent().getExtras().getString("flowName")
 	  
-	def messageList: ListView = findViewById(R.id.flowMessageList).asInstanceOf[ListView]
+	def messagePullToRefreshListView: PullToRefreshListView = findViewById(R.id.flowMessageList).asInstanceOf[PullToRefreshListView]
+	def messageList: ListView = messagePullToRefreshListView.getRefreshableView()
 	def inputEditText: EditText = findViewById(R.id.flowInputText).asInstanceOf[EditText]
 
 	override def onCreate(savedInstance: Bundle): Unit = {
@@ -50,6 +61,13 @@ class FlowActivity extends Activity {
 	    }
 	    override def beforeTextChanged(s: CharSequence, st: Int, c: Int, after: Int) = {}
 	    override def onTextChanged(s: CharSequence, st: Int, b: Int, c: Int) = {}
+	  })
+
+	  messagePullToRefreshListView.setOnRefreshListener(new OnRefreshListener[ListView]() {
+	    override def onRefresh(list: PullToRefreshBase[ListView]) = {
+	      val untilMessage: FlowMessage = messages.head
+	      FlowdockApi.getMessagesUntil(FlowActivity.this, flowUrl, untilMessage, receiveNewMessages(false, true))
+	    }
 	  })
 	}
 	
@@ -83,7 +101,7 @@ class FlowActivity extends Activity {
 	override def onResume: Unit = {
 	  super.onResume()
 	  toggleLoading(true)
-	  FlowdockApi.getMessages(this, flowUrl, receiveNewMessages)
+	  FlowdockApi.getLatestMessages(this, flowUrl, receiveNewMessages(true))
 
       Log.v("debug", "Starting to consume messages from stream")
 	  FlowdockStreamClient.streamingMessages(this, streamUrl, receiveNewMessage)
@@ -97,17 +115,26 @@ class FlowActivity extends Activity {
 	
 	def receiveNewMessage(message: FlowMessage) = {
 	    if (!message.event.startsWith("activity"))
-		  addToMessageList(message)
+		  addLastToMessageModels(List(message))
+		  updateMessageList()
+		  scrollMessageListToBottom()
 	    receiveMessages 
 	}
 	
-	def receiveNewMessages(messages: Option[List[FlowMessage]]) = {
+	def receiveNewMessages(replace: Boolean, first: Boolean = true)(messages: Option[List[FlowMessage]]) = {
 	  messages match {
         case Some(newMessages) => {
-		  replaceMessageModels(newMessages)
+          if (replace)
+            replaceMessageModels(newMessages)
+          else
+            if (first)
+	          addFirstToMessageModels(newMessages)
+	        else
+	          addLastToMessageModels(newMessages)
 		  updateMessageList()
 		  scrollMessageListToBottom()
 		  toggleLoading(false)
+		  messagePullToRefreshListView.onRefreshComplete()
 		}
 	    case None => Log.v("debug", "No messages")
 	  }
@@ -118,12 +145,6 @@ class FlowActivity extends Activity {
 
     def scrollMessageListToBottom() =
       utils.runOnUiThread(this, () => messageList.setSelection(messageList.getAdapter().getCount() - 1))
-
-	def addToMessageList(message: FlowMessage) = {
-	  replaceMessageModels(messages ::: List(message))
-	  updateMessageList()
-	  scrollMessageListToBottom()
-	}
 
 	def toggleLoading(visible: Boolean) = {
 	  if (menuProgress != null)

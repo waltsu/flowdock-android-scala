@@ -53,25 +53,12 @@ object FlowdockApi {
     usersPromise.future
   } 
 
-  def getMessages(c: Context, flowUrl: String, cb: (Option[List[FlowMessage]]) => Unit) = {
-    RESTClient.getRequest(c, flowUrl + "/messages", (res) => {
-      res match {
-	    case Some(response) => {
-	      val messages = utils.JSONArrayToList(new JSONArray(response))
-	      val messageList = messages.map((k: Any) => {
-	        k match {
-	          case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
-	          case _ => Map[String, Any]()
-	        }
-	      })
-	      val messageModels = messageList.map((m: Map[String, Any]) => {
-	        ModelBuilders.constructFlowMessage(m)
-	      })
-	      cb(Some(messageModels))
-	    }
-	    case None => cb(None)
-      }
-    })
+  def getMessagesUntil(c: Context, flowUrl: String, untilMessage: FlowMessage, cb: (Option[List[FlowMessage]]) => Unit) = {
+    val params = Map("until_id" -> untilMessage.id)  
+    RESTClient.getRequest(c, flowUrl + "/messages", params, messagesCallback(cb))
+  }
+  def getLatestMessages(c: Context, flowUrl: String, cb: (Option[List[FlowMessage]]) => Unit) = {
+    RESTClient.getRequest(c, flowUrl + "/messages", messagesCallback(cb))
   }
   
   def sendMessage(c: Context, flowUrl: String, message: FlowMessage, cb: (Boolean) => Unit) = {
@@ -107,5 +94,25 @@ object FlowdockApi {
     flowPromise.future
   }
 
-
+  
+  private def messagesCallback(userCb: (Option[List[FlowMessage]]) => Unit): (Option[String]) => Unit = {
+    (res: Option[String]) => {
+      res match {
+        case Some(response) => {
+	      val messages = utils.JSONArrayToList(new JSONArray(response))
+	      val messageList = messages.map((k: Any) => {
+	        k match {
+	          case x if x.isInstanceOf[JSONObject] => utils.JSONObjectToMap(x.asInstanceOf[JSONObject])
+	          case _ => Map[String, Any]()
+	        }
+	      })
+	      val messageModels = messageList.map((m: Map[String, Any]) => {
+	        ModelBuilders.constructFlowMessage(m)
+	      })
+	      userCb(Some(messageModels))
+	    }
+	    case None => userCb(None)
+	  }
+    }
+  }
 }
