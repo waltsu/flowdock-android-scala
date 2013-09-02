@@ -44,7 +44,7 @@ class FlowActivity extends Activity {
 	def flowName =
 	  getIntent().getExtras().getString("flowName")
 	  
-	def messagePullToRefreshListView: PullToRefreshListView = findViewById(R.id.flowMessageList).asInstanceOf[PullToRefreshListView]
+	def messagePullToRefreshListView: SmartScrollPullToRefreshListView = findViewById(R.id.flowMessageList).asInstanceOf[SmartScrollPullToRefreshListView]
 	def messageList: ListView = messagePullToRefreshListView.getRefreshableView()
 	def inputEditText: EditText = findViewById(R.id.flowInputText).asInstanceOf[EditText]
 
@@ -117,7 +117,6 @@ class FlowActivity extends Activity {
 	    if (!message.event.startsWith("activity"))
 		  addLastToMessageModels(List(message))
 		  updateMessageList()
-		  scrollMessageListToBottom()
 	    receiveMessages 
 	}
 	
@@ -132,7 +131,6 @@ class FlowActivity extends Activity {
 	        else
 	          addLastToMessageModels(newMessages)
 		  updateMessageList()
-		  scrollMessageListToBottom()
 		}
 	    case None => {
 	      Toast.makeText(FlowActivity.this, "Problem when fetching messages", Toast.LENGTH_LONG).show()
@@ -142,12 +140,14 @@ class FlowActivity extends Activity {
 	  messagePullToRefreshListView.onRefreshComplete()
 	}
 	
-	def updateMessageList() =
-      utils.runOnUiThread(this, () => messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages)))
-
-    def scrollMessageListToBottom() =
-      utils.runOnUiThread(this, () => messageList.setSelection(messageList.getAdapter().getCount() - 1))
-
+	def updateMessageList() = {
+      utils.runOnUiThread(this, () => {
+        messagePullToRefreshListView.savePosition()
+        messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages))
+        messagePullToRefreshListView.restorePosition()
+      })
+	}
+        
 	def toggleLoading(visible: Boolean) = {
 	  if (menuProgress != null)
 	    utils.runOnUiThread(FlowActivity.this, () => menuProgress.setVisible(visible))

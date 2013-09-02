@@ -6,7 +6,7 @@
     android:focusable="true"
     android:focusableInTouchMode="true" >
     
-    <com.handmark.pulltorefresh.library.PullToRefreshListView
+    <com.waltsu.flowdock.SmartScrollPullToRefreshListView
         android:id="@+id/flowMessageList"
         android:layout_width="match_parent"
         android:layout_above="@+id/flowInputText"
