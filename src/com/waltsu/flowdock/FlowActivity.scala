@@ -142,6 +142,9 @@ class FlowActivity extends Activity {
 	
 	def updateMessageList() = {
       utils.runOnUiThread(this, () => {
+        // If we always create new adapter, listview's position will reset to 0
+        // TODO: Figure how to use existing adapter without mutable states :)
+        // We might need to switch messages to mutable list and use notifyDataSetChange on adapter... :(
         messagePullToRefreshListView.savePosition()
         messageList.setAdapter(new FlowMessageAdapter(getApplicationContext(), messages))
         messagePullToRefreshListView.restorePosition()
