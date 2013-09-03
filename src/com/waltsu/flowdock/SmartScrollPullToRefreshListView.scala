@@ -64,11 +64,14 @@ class SmartScrollPullToRefreshListView(val c: Context, attrs: AttributeSet) exte
 	  })
     }
   }
-  def scrollToBottom =
-    getRefreshableView().post(new Runnable() {
-      override def run() = {
-        getRefreshableView().setSelection(getRefreshableView().getAdapter().getCount())
-      }
-    })
-
+  def scrollToBottom = {
+    if (getRefreshableView().getAdapter() != null) {
+      getRefreshableView().setSelection(getRefreshableView().getAdapter().getCount()) // Hack
+      getRefreshableView().post(new Runnable() {
+        override def run() = {
+          getRefreshableView().setSelection(getRefreshableView().getAdapter().getCount())
+        }
+      })
+    }
+  }
 }
