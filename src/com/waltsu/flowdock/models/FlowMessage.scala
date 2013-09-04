@@ -20,36 +20,6 @@ class FlowMessage(val event: String,
   
   
   def getView(c: Context): View = {
-    event match {
-      case "comment" => getCommentView(c)
-      case "mail" => getMailView(c)
-      case _ => getDefaultView(c)
-    }
-  }
-  
-  def getCommentView(c: Context): View = {
-    val view = LayoutInflater.from(c).inflate(R.layout.comment_message_item, null)
-    val header = view.findViewById(R.id.commentHeader).asInstanceOf[TextView]
-    val body = view.findViewById(R.id.commentBody).asInstanceOf[TextView]
-    val title = view.findViewById(R.id.commentTitle).asInstanceOf[TextView]
-    header.setText(userName + timeRepresentation + ":")
-    body.setText(getCommentContent._2)
-    title.setText(getCommentContent._1)
-    view
-  }
-  def getMailView(c: Context): View = {
-    val view = LayoutInflater.from(c).inflate(R.layout.mail_message_item, null)
-    val subject = view.findViewById(R.id.mailSubject).asInstanceOf[TextView]
-    val contentWebView = view.findViewById(R.id.mailContent).asInstanceOf[TextView]
-    val source = view.findViewById(R.id.mailSource).asInstanceOf[TextView]
-    val mailContent = getMailContent
-    subject.setText(mailContent._1 + timeRepresentation + ":")
-    contentWebView.setText(mailContent._2)
-    contentWebView.setBackgroundColor(0x00000000)
-    source.setText(mailContent._3)
-    view
-  }
-  def getDefaultView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.content_list_item, null)
     val header = view.findViewById(R.id.contentHeader).asInstanceOf[TextView]
     val body = view.findViewById(R.id.contentBody).asInstanceOf[TextView]
@@ -58,21 +28,6 @@ class FlowMessage(val event: String,
     view
   }
 
-  def getCommentContent = {
-    val contentMap = utils.JSONObjectToMap(new JSONObject(content)) 
-    val title = utils.getStringOrEmpty(contentMap, "title")
-    val commentContent = utils.getStringOrEmpty(contentMap, "text")
-    (title, commentContent)
-    
-  }
-
-  def getMailContent = {
-    val mailMap = utils.JSONObjectToMap(new JSONObject(content))
-    val subject = utils.getStringOrEmpty(mailMap, "subject")
-    val mailContent = android.text.Html.fromHtml(utils.getStringOrEmpty(mailMap, "content")).toString()
-    val source = utils.getStringOrEmpty(mailMap, "source")
-    (subject, mailContent, source)
-  }
   def getDefaultContent: String = {
     val body = event match {
       case "message" => content
@@ -82,12 +37,14 @@ class FlowMessage(val event: String,
     body
   }
   
+  // Refactor
   def canBeShown: Boolean = {
     event match {
     case "message" => true
     case "status" => true
     case "comment" => true
     case "mail" => true
+    case "vcs" => true
     case _ => false
 	}
   }

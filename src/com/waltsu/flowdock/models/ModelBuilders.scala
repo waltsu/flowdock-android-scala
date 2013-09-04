@@ -23,8 +23,13 @@ object ModelBuilders {
     }
     Log.v("debug", "Constructing message for event: " + event)
     Log.v("debug", "Content: " + content)
-	new FlowMessage(event, content, id, sent, user)
-	}
+    event match {
+      case "comment" => new CommentMessage(event, content, id, sent, user)
+      case "mail" => new MailMessage(event, content, id, sent, user)
+      case "vcs" => new VCSMessage(event, content, id, sent, user)
+      case _ => new FlowMessage(event, content, id, sent, user)
+    }
+  }
   
   def constructUser(m: Map[String, Any]): User = {
     val userId = m.get("id").get.toString
