@@ -40,10 +40,6 @@ class FlowMessage(val event: String,
   def canBeShown: Boolean = {
     event match {
     case "message" => true
-    case "status" => true
-    case "comment" => true
-    case "mail" => true
-    case "vcs" => true
     case _ => false
 	}
   }

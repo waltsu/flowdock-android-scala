@@ -15,6 +15,8 @@ class VCSMessage(override val event: String,
 					 override val userName: String = "")
 	  extends FlowMessage(event, content, id, sent, userName) {
 
+  override def canBeShown = true
+
   override def getView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.vcs_message_item, null)
     val author = view.findViewById(R.id.vcsAuthor).asInstanceOf[TextView]

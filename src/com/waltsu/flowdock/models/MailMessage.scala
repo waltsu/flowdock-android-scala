@@ -15,6 +15,8 @@ class MailMessage(override val event: String,
 					 override val userName: String = "")
 	  extends FlowMessage(event, content, id, sent, userName) {
 
+  override def canBeShown = true
+
   override def getView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.mail_message_item, null)
     val subject = view.findViewById(R.id.mailSubject).asInstanceOf[TextView]

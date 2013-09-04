@@ -12,6 +12,9 @@ class StatusMessage(override val event: String,
 					 override val sent: Long = 0,
 					 override val userName: String = "")
 	  extends FlowMessage(event, content, id, sent, userName) {
+
+  override def canBeShown = true
+
   override def getView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.status_message_item, null)
     val header = view.findViewById(R.id.statusHeader).asInstanceOf[TextView]
