@@ -8,4 +8,4 @@ Work in progress.
 Depencies
 ========
 
-Depens on [https://github.com/levelup/Android-PullToRefresh](https://github.com/levelup/Android-PullToRefresh)
+Depends on [https://github.com/levelup/Android-PullToRefresh](https://github.com/levelup/Android-PullToRefresh)
