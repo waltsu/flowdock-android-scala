@@ -20,9 +20,14 @@ class VCSMessage(override val event: String,
   override def getView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.vcs_message_item, null)
     val author = view.findViewById(R.id.vcsAuthor).asInstanceOf[TextView]
-    val content = view.findViewById(R.id.vcsContent).asInstanceOf[TextView]
+    val contentView = view.findViewById(R.id.vcsContent).asInstanceOf[TextView]
     author.setText(getAuthorContent)
-    content.setText(getContentContent)
+    val contentContent = getContentContent
+    if (contentContent.length() == 0)
+      contentView.setVisibility(View.GONE)
+    else
+	  contentView.setText(getContentContent)
+
     view
   }
 
@@ -56,7 +61,7 @@ class VCSMessage(override val event: String,
     val name = utils.getStringOrEmpty(pusherMap, "name")
     val project = utils.getStringOrEmpty(repositoryMap, "name")
     val headHash = utils.getStringOrEmpty(headCommitMap, "id").substring(0, 6)
-    name + " pushed new head #" + headHash + " to " + project + timeRepresentation + ":"
+    name + " pushed new head #" + headHash + " to " + project + timeRepresentation
   }
   def getIssuesAuthor(vcsMap: Map[String, Any]) = {
     val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
@@ -65,14 +70,14 @@ class VCSMessage(override val event: String,
     val name = utils.getStringOrEmpty(senderMap, "login")
     val action = utils.getStringOrEmpty(vcsMap, "action")
     val number = utils.getStringOrEmpty(issueMap, "number")
-    name + " " + action + " an issue #" + number + timeRepresentation + ":"
+    name + " " + action + " an issue #" + number + timeRepresentation
   }
   def getIssueCommentAuthor(vcsMap: Map[String, Any]) = {
     val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
     val issueMap = utils.getMapFromOptionJSON(vcsMap.get("issue"))
     val name = utils.getStringOrEmpty(senderMap, "login")
     val number = utils.getStringOrEmpty(issueMap, "number")
-    name + " commented on issue #" + number + timeRepresentation + ":"
+    name + " commented on issue #" + number + timeRepresentation
   }
 
   def getPushContent(vcsMap: Map[String, Any]) = {
