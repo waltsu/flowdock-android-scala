@@ -32,6 +32,8 @@ class VCSMessage(override val event: String,
     event match {
       case "push" => getPushAuthor(vcsMap)
       case "issues" => getIssuesAuthor(vcsMap)
+      case "issue_comment" => getIssueCommentAuthor(vcsMap)
+      case _ => ""
     }
   }
   
@@ -41,6 +43,8 @@ class VCSMessage(override val event: String,
     event match {
       case "push" => getPushContent(vcsMap)
       case "issues" => getIssuesContent(vcsMap)
+      case "issue_comment" => getIssuesContent(vcsMap)
+      case _ => ""
     }
   }
 
@@ -62,6 +66,13 @@ class VCSMessage(override val event: String,
     val action = utils.getStringOrEmpty(vcsMap, "action")
     val number = utils.getStringOrEmpty(issueMap, "number")
     name + " " + action + " an issue #" + number + timeRepresentation + ":"
+  }
+  def getIssueCommentAuthor(vcsMap: Map[String, Any]) = {
+    val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
+    val issueMap = utils.getMapFromOptionJSON(vcsMap.get("issue"))
+    val name = utils.getStringOrEmpty(senderMap, "login")
+    val number = utils.getStringOrEmpty(issueMap, "number")
+    name + " commented on issue #" + number + timeRepresentation + ":"
   }
 
   def getPushContent(vcsMap: Map[String, Any]) = {
