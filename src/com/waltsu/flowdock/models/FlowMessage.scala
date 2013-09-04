@@ -19,13 +19,31 @@ class FlowMessage(val event: String,
   
   
   def getView(c: Context): View = {
+    event match {
+      case "comment" => getCommentView(c)
+      case _ => getDefaultView(c)
+    }
+  }
+  
+  def getCommentView(c: Context): View = {
+    val view = LayoutInflater.from(c).inflate(R.layout.comment_message_item, null)
+    val header = view.findViewById(R.id.commentHeader).asInstanceOf[TextView]
+    val body = view.findViewById(R.id.commentBody).asInstanceOf[TextView]
+    val title = view.findViewById(R.id.commentTitle).asInstanceOf[TextView]
+    header.setText(userName + timeRepresentation + ":")
+    body.setText(getCommentContent._2)
+    title.setText(getCommentContent._1)
+    view
+  }
+  def getDefaultView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.content_list_item, null)
     val header = view.findViewById(R.id.contentHeader).asInstanceOf[TextView]
     val body = view.findViewById(R.id.contentBody).asInstanceOf[TextView]
     header.setText(userName + timeRepresentation + ":")
-    body.setText(getContent)
+    body.setText(getDefaultContent)
     view
   }
+
   def canBeShown: Boolean = {
     event match {
     case "message" => true
@@ -35,17 +53,7 @@ class FlowMessage(val event: String,
 	}
   }
 
-  def getContent: String = {
-    val body = event match {
-      case "message" => content
-      case "status" => content
-      case "comment" => constructComment
-      case _ => "Not implemented :( ("  + event + ")"
-    }
-    body
-  }
-  
-  def constructComment = {
+  def getCommentContent = {
     val contentMap = utils.JSONObjectToMap(new JSONObject(content)) 
     val title = contentMap.get("title") match {
       case Some(x) => x.toString
@@ -55,8 +63,18 @@ class FlowMessage(val event: String,
       case Some(x) => x.toString
       case None => ""
     }
-    title + ":\n" + commentContent
+    (title, commentContent)
+    
   }
+  def getDefaultContent: String = {
+    val body = event match {
+      case "message" => content
+      case "status" => content
+      case _ => "Not implemented :( ("  + event + ")"
+    }
+    body
+  }
+  
   
   def timeRepresentation: String =
     sent match {
