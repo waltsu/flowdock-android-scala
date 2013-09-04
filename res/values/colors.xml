@@ -3,5 +3,7 @@
   <color name="default_background">#00000000</color>
   <color name="comment_background">#08000000</color> 
   <color name="mail_background">#08FFFF00</color>
+  <color name="vcs_background">#0800FF00</color>
+  <color name="status_background">#080000FF</color>
   <color name="light_color">#6d6d6d</color>
 </resources>

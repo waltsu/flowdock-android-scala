@@ -21,12 +21,12 @@ object ModelBuilders {
       case Some(u) => u.name
       case None => ""
     }
-    Log.v("debug", "Constructing message for event: " + event)
-    Log.v("debug", "Content: " + content)
+
     event match {
       case "comment" => new CommentMessage(event, content, id, sent, user)
       case "mail" => new MailMessage(event, content, id, sent, user)
       case "vcs" => new VCSMessage(event, content, id, sent, user)
+      case "status" => new StatusMessage(event, content, id, sent, user)
       case _ => new FlowMessage(event, content, id, sent, user)
     }
   }

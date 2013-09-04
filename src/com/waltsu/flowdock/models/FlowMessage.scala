@@ -31,7 +31,6 @@ class FlowMessage(val event: String,
   def getDefaultContent: String = {
     val body = event match {
       case "message" => content
-      case "status" => content
       case _ => "Not implemented :( ("  + event + ")"
     }
     body
