@@ -1,6 +1,7 @@
 package com.waltsu.flowdock.models
 
 import com.waltsu.flowdock.ApplicationState
+import android.util.Log
 
 object ModelBuilders {
 
@@ -20,6 +21,8 @@ object ModelBuilders {
       case Some(u) => u.name
       case None => ""
     }
+    Log.v("debug", "Constructing message for event: " + event)
+    Log.v("debug", "Content: " + content)
 	new FlowMessage(event, content, id, sent, user)
 	}
   

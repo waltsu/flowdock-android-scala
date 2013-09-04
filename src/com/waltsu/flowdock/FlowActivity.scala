@@ -114,9 +114,10 @@ class FlowActivity extends Activity {
 	}
 	
 	def receiveNewMessage(message: FlowMessage) = {
-	    if (!message.event.startsWith("activity"))
+	    if (message.canBeShown) {
 		  addLastToMessageModels(List(message))
 		  updateMessageList()
+		}
 	    receiveMessages 
 	}
 	

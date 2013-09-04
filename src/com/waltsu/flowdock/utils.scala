@@ -4,6 +4,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import android.app.Activity
 import collection.mutable.Map
+import collection.immutable.{ Map => ImmutableMap }
 import collection.mutable.ListBuffer
 import collection.JavaConversions._
 import java.util.{ ArrayList, HashMap }
@@ -36,6 +37,13 @@ object utils {
       map
     }).toMap
       
+  }
+  
+  def getStringOrEmpty(m: ImmutableMap[String, Any], key: String): String = {
+    m.get(key) match {
+      case Some(x) => x.toString
+      case None => ""
+    }
   }
 	  
 }
