@@ -17,26 +17,59 @@ class VCSMessage(override val event: String,
 
   override def getView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.vcs_message_item, null)
-    val header = view.findViewById(R.id.vcsHeader).asInstanceOf[TextView]
-    val pusher = view.findViewById(R.id.vcsPusher).asInstanceOf[TextView]
-    header.setText("Coming")
-    pusher.setText(getVCSAuthorContent)
+    val author = view.findViewById(R.id.vcsAuthor).asInstanceOf[TextView]
+    val content = view.findViewById(R.id.vcsContent).asInstanceOf[TextView]
+    author.setText(getAuthorContent)
+    content.setText(getContentContent)
     view
   }
 
-  def getVCSAuthorContent = {
-    val vcsContent = utils.JSONObjectToMap(new JSONObject(content))
-    val pusherMap = vcsContent.get("pusher") match {
-      case Some(x) => {
-        x match {
-          case json if json.isInstanceOf[JSONObject] => utils.JSONObjectToMap(json.asInstanceOf[JSONObject])
-          case _ => Map[String, Any]()
-        }    
-      }
-      case None => Map[String, Any]()
+  def getAuthorContent = {
+    val vcsMap = utils.JSONObjectToMap(new JSONObject(content))
+    val event = utils.getStringOrEmpty(vcsMap, "event")
+    event match {
+      case "push" => getPushAuthor(vcsMap)
+      case "issues" => getIssuesAuthor(vcsMap)
     }
-    val email = utils.getStringOrEmpty(pusherMap, "email")
-    val name = utils.getStringOrEmpty(pusherMap, "name")
-    name + "(" + email + ")"
   }
+  
+  def getContentContent = {
+    val vcsMap = utils.JSONObjectToMap(new JSONObject(content))
+    val event = utils.getStringOrEmpty(vcsMap, "event")
+    event match {
+      case "push" => getPushContent(vcsMap)
+      case "issues" => getIssuesContent(vcsMap)
+    }
+  }
+
+  def getPushAuthor(vcsMap: Map[String, Any]) = {
+    val pusherMap = utils.getMapFromOptionJSON(vcsMap.get("pusher"))
+    val repositoryMap = utils.getMapFromOptionJSON(vcsMap.get("repository"))
+    val headCommitMap = utils.getMapFromOptionJSON(vcsMap.get("head_commit"))
+
+    val name = utils.getStringOrEmpty(pusherMap, "name")
+    val project = utils.getStringOrEmpty(repositoryMap, "name")
+    val headHash = utils.getStringOrEmpty(headCommitMap, "id").substring(0, 6)
+    name + " pushed new head #" + headHash + " to " + project + timeRepresentation + ":"
+  }
+  def getIssuesAuthor(vcsMap: Map[String, Any]) = {
+    val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
+    val issueMap = utils.getMapFromOptionJSON(vcsMap.get("issue"))
+
+    val name = utils.getStringOrEmpty(senderMap, "login")
+    val action = utils.getStringOrEmpty(vcsMap, "action")
+    val number = utils.getStringOrEmpty(issueMap, "number")
+    name + " " + action + " an issue #" + number + timeRepresentation + ":"
+  }
+
+  def getPushContent(vcsMap: Map[String, Any]) = {
+    val headCommitMap = utils.getMapFromOptionJSON(vcsMap.get("head_commit"))
+    val message = utils.getStringOrEmpty(headCommitMap, "message")
+    message
+  }
+  def getIssuesContent(vcsMap: Map[String, Any]) = {
+    val issueMap = utils.getMapFromOptionJSON(vcsMap.get("issue"))
+    utils.getStringOrEmpty(issueMap, "body")
+  }
+
 }

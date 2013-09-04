@@ -10,7 +10,7 @@
     android:layout_height="match_parent" >
 
 <TextView 
-    android:id="@+id/vcsHeader"
+    android:id="@+id/vcsAuthor"
     android:gravity="left"
     android:textSize="16sp"
     android:paddingTop="8dp"
@@ -20,20 +20,12 @@
     android:layout_height="wrap_content"/>
 
 <TextView 
-    android:id="@+id/vcsPusher"
+    android:id="@+id/vcsContent"
     android:gravity="left"
     android:textSize="14sp"
     android:textColor="@color/light_color"
     android:textStyle="italic"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"/>
-
-<TextView 
-    android:id="@+id/vcsContent"
-    android:gravity="left"
-    android:textSize="16sp"
-    android:paddingTop="8dp"
-    android:textColor="#000000"
+    android:paddingBottom="8dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"/>
 

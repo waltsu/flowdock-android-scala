@@ -45,5 +45,17 @@ object utils {
       case None => ""
     }
   }
+  
+  def getMapFromOptionJSON(option: Option[Any]): ImmutableMap[String, Any] = {
+    option match {
+      case Some(x) => {
+        x match {
+          case json: JSONObject => JSONObjectToMap(json)
+          case _ => ImmutableMap[String, Any]()
+        }
+      }
+      case None => ImmutableMap[String, Any]()
+    } 
+  }
 	  
 }
