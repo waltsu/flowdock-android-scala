@@ -60,7 +60,12 @@ class VCSMessage(override val event: String,
 
     val name = utils.getStringOrEmpty(pusherMap, "name")
     val project = utils.getStringOrEmpty(repositoryMap, "name")
-    val headHash = utils.getStringOrEmpty(headCommitMap, "id").substring(0, 6)
+    val headHash = utils.getStringOrEmpty(headCommitMap, "id") match {
+      case x if x.length() > 7 => x.substring(0, 7)
+      case x: String => x
+      case _ => ""
+    }
+
     name + " pushed new head #" + headHash + " to " + project + timeRepresentation
   }
   def getIssuesAuthor(vcsMap: Map[String, Any]) = {
