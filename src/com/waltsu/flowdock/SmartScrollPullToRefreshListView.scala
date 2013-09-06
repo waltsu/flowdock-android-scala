@@ -13,7 +13,7 @@ class SmartScrollPullToRefreshListView(val c: Context, attrs: AttributeSet) exte
   var oldAtBottom: Boolean = false
   
   var atBottom: Boolean = false
-  
+  /*
   override def onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) = {
     super.onSizeChanged(width, height, oldWidth, oldHeight)
     post(new Runnable() {
@@ -24,7 +24,7 @@ class SmartScrollPullToRefreshListView(val c: Context, attrs: AttributeSet) exte
           getRefreshableView().setSelection(getRefreshableView().getFirstVisiblePosition())
       }
     })
-  }
+  }*/
   setOnScrollListener(new OnScrollListener() {
     override def onScroll(listView: AbsListView,
     					  firstVisibleItem: Int,
