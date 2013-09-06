@@ -101,7 +101,7 @@ class FlowActivity extends Activity {
 	override def onResume: Unit = {
 	  super.onResume()
 	  toggleLoading(true)
-	  FlowdockApi.getLatestMessages(this, flowUrl, receiveNewMessages(true))
+	  FlowdockApi.getLatestMessages(this, flowUrl, receiveNewMessages(true, false, true))
 
       Log.v("debug", "Starting to consume messages from stream")
 	  FlowdockStreamClient.streamingMessages(this, streamUrl, receiveNewMessage)
@@ -121,7 +121,7 @@ class FlowActivity extends Activity {
 	    receiveMessages 
 	}
 	
-	def receiveNewMessages(replace: Boolean, first: Boolean = true)(messages: Option[List[FlowMessage]]) = {
+	def receiveNewMessages(replace: Boolean, first: Boolean = true, scrollDown: Boolean = false)(messages: Option[List[FlowMessage]]) = {
 	  messages match {
         case Some(newMessages) => {
           if (replace)
@@ -132,6 +132,8 @@ class FlowActivity extends Activity {
 	        else
 	          addLastToMessageModels(newMessages)
 		  updateMessageList()
+		  if (scrollDown)
+		    messagePullToRefreshListView.scrollToBottom
 		}
 	    case None => {
 	      Toast.makeText(FlowActivity.this, "Problem when fetching messages", Toast.LENGTH_LONG).show()
