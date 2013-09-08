@@ -1,34 +1,41 @@
 package com.waltsu.flowdock
 
-import com.waltsu.flowdock.models.FlowMessage
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.net.URI
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.future
+
 import org.apache.http.HttpResponse
-import com.waltsu.flowdock.models.ModelBuilders
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.Credentials
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
-import java.io.BufferedReader
-import java.io.InputStream
-import android.util.Log
 import org.json.JSONObject
-import org.apache.http.auth.AuthScope
-import java.io.InputStreamReader
-import java.net.URI
-import org.apache.http.auth.Credentials
-import java.io.IOException
-import android.content.Context
 
-object FlowdockStreamClient {
-  /*
-   * Currently when encountering io-error tries to connect again. Some throttling/smarter reconnect logic needed!
-   * This will drain the battery pretty fast
-   */
-  def streamingMessages(c: Context, flowUrl: String, cb: (FlowMessage) => Boolean): Unit = future[Unit] {
+import com.waltsu.flowdock.models.FlowMessage
+import com.waltsu.flowdock.models.ModelBuilders
+
+import android.content.Context
+import android.os.Handler
+import android.util.Log
+import android.widget.Toast
+
+class FlowdockStreamClient(val context: Context, val flowUrl: String) {
+  val maxCooldownTime = 60
+  val handler = new Handler()
+  var errorCallback: (String => Unit) = null
+  var successCallback: (String) => Unit = null
+
+  def streamingMessages(cb: (FlowMessage) => Boolean, coolDown: Int = 1): Unit = future[Unit] {
     Log.v("debug", "Streaming from: " + flowUrl)
     try {
 	  val streamClient: DefaultHttpClient = new DefaultHttpClient()
-	  val basicAuth: Credentials = new UsernamePasswordCredentials(ApplicationState.apiToken(c), "")
+	  val basicAuth: Credentials = new UsernamePasswordCredentials(ApplicationState.apiToken(context), "")
 	  streamClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), basicAuth)
 	  val req: HttpGet = new HttpGet()
 
@@ -43,6 +50,8 @@ object FlowdockStreamClient {
 	    
 	  def consumeLine(input: BufferedReader): Unit = {
 	    val line = input.readLine()
+	    // Inform caller that succeffully read line from stream.
+	    if (successCallback != null) successCallback(line)
 		if (line.startsWith("{")) {
 		  val rawMessage = utils.JSONObjectToMap(new JSONObject(line))
 		  val flowMessage = ModelBuilders.constructFlowMessage(rawMessage)
@@ -60,9 +69,22 @@ object FlowdockStreamClient {
 	} catch {
 	  case ioe: IOException =>
 	    Log.v("debug", "Got io exception: " + ioe.getMessage().toString())
-	    
-	    Log.v("debug", "Opening new connection")
-	    streamingMessages(c, flowUrl, cb)
+	    if (errorCallback != null) errorCallback(ioe.getMessage().toString())
+	    if (coolDown < maxCooldownTime) {
+	      Log.v("debug", "Posting new event to handler because cooldown time is: " + coolDown)
+	      handler.postDelayed(new Runnable() {
+	        override def run() {
+		      Log.v("debug", "Maximum time not exceed, opening new connection")
+		      streamingMessages(cb, coolDown * 2)
+	        }
+	      }, coolDown * 1000)
+	    } else {
+	      handler.post(new Runnable() {
+	        override def run() {
+		      Toast.makeText(context, "Cannot stream messages", Toast.LENGTH_LONG).show()
+	        } 
+	      })
+	    }
 	}
   }
     

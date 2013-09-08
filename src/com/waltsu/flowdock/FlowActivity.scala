@@ -108,7 +108,13 @@ class FlowActivity extends Activity {
 	  FlowdockApi.getLatestMessages(this, flowUrl, receiveNewMessages(true, false, true))
 
       Log.v("debug", "Starting to consume messages from stream")
-	  FlowdockStreamClient.streamingMessages(this, streamUrl, receiveNewMessage)
+      val streamClient = new FlowdockStreamClient(this, streamUrl)
+	  streamClient.streamingMessages(receiveNewMessage)
+	  streamClient.errorCallback = (message: String) =>
+	    toggleLoading(true)
+	  streamClient.successCallback = (message: String) =>
+	    toggleLoading(false)
+
 	  receiveMessages = true
 	}
 	
