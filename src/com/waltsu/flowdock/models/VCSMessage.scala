@@ -61,6 +61,8 @@ class VCSMessage(override val event: String,
 
     val name = utils.getStringOrEmpty(pusherMap, "name")
     val project = utils.getStringOrEmpty(repositoryMap, "name")
+    val ref = utils.getStringOrEmpty(vcsMap, "ref") 
+    val branch = ref.split("/").last
 
     val deleted = utils.getStringOrEmpty(vcsMap, "deleted")
     if (deleted == "true") {
@@ -74,7 +76,8 @@ class VCSMessage(override val event: String,
         case x: String => x
         case _ => ""
       }
-      name + " pushed new head #" + headHash + " to " + project + timeRepresentation
+      name + " pushed new head #" + headHash + " to " + project +
+      "/" + branch + timeRepresentation
     }
   }
   def getIssuesAuthor(vcsMap: Map[String, Any]) = {
