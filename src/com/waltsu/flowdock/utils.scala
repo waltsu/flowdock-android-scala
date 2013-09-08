@@ -57,5 +57,17 @@ object utils {
       case None => ImmutableMap[String, Any]()
     } 
   }
+  def getListFromOptionJSON(option: Option[Any]) = {
+   option match {
+     case Some(x) => {
+       x match {
+         case json: JSONArray => JSONArrayToList(json)
+         case _ => List[Any]()
+       }
+     }
+     case None => List[Any]()
+   } 
+    
+  }
 	  
 }

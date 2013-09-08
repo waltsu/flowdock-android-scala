@@ -34,6 +34,9 @@
     android:paddingBottom="8dp"
     android:textColor="@color/light_color"
     android:textStyle="italic"
+    android:maxLines="3"
+    android:ellipsize="end"
+    android:singleLine="false"
     android:layout_width="match_parent"
     android:layout_height="wrap_content" />
 

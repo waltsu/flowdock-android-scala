@@ -20,22 +20,29 @@ class MailMessage(override val event: String,
   override def getView(c: Context): View = {
     val view = LayoutInflater.from(c).inflate(R.layout.mail_message_item, null)
     val subject = view.findViewById(R.id.mailSubject).asInstanceOf[TextView]
-    val contentWebView = view.findViewById(R.id.mailContent).asInstanceOf[TextView]
+    val contentView = view.findViewById(R.id.mailContent).asInstanceOf[TextView]
     val source = view.findViewById(R.id.mailSource).asInstanceOf[TextView]
     val mailContent = getMailContent
-    subject.setText(mailContent._1 + timeRepresentation + ":")
-    contentWebView.setText(mailContent._2)
-    contentWebView.setBackgroundColor(0x00000000)
+    subject.setText(mailContent._1 + timeRepresentation)
+    contentView.setText(mailContent._2)
     source.setText(mailContent._3)
     view
   }
 
   def getMailContent = {
     val mailMap = utils.JSONObjectToMap(new JSONObject(content))
+    val fromMap = utils.getMapFromOptionJSON(Some(utils.getListFromOptionJSON(mailMap.get("from")).head))
+
     val subject = utils.getStringOrEmpty(mailMap, "subject")
     val mailContent = android.text.Html.fromHtml(utils.getStringOrEmpty(mailMap, "content")).toString()
-    val source = utils.getStringOrEmpty(mailMap, "source")
-    (subject, mailContent, source)
+    
+    val fromMail = utils.getStringOrEmpty(fromMap, "address")
+    val fromName = utils.getStringOrEmpty(fromMap, "name")
+    if (fromName.length() > 0)
+      (subject, mailContent, fromName + " (" + fromMail + ")")
+    else
+      (subject, mailContent, fromMail)
+      
   }
 
 }
