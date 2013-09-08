@@ -19,4 +19,8 @@ object ApplicationState {
   def apiToken(c: Context) = {
     c.getSharedPreferences("prefs", 0).getString("apiToken", "")
   }
+  
+  def getApiUrl(c: Context) = {
+    c.getSharedPreferences("prefs", 0).getString("apiUrl", "https://api.flowdock.com")
+  }
 }
