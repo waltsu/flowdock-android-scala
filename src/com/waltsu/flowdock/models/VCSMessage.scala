@@ -49,7 +49,7 @@ class VCSMessage(override val event: String,
     event match {
       case "push" => getPushContent(vcsMap)
       case "issues" => getIssuesContent(vcsMap)
-      case "issue_comment" => getIssuesContent(vcsMap)
+      case "issue_comment" => getIssueCommentContent(vcsMap)
       case "pull_request" => getPullRequestContent(vcsMap)
       case _ => ""
     }
@@ -77,14 +77,19 @@ class VCSMessage(override val event: String,
     val name = utils.getStringOrEmpty(senderMap, "login")
     val action = utils.getStringOrEmpty(vcsMap, "action")
     val number = utils.getStringOrEmpty(issueMap, "number")
-    name + " " + action + " an issue #" + number + timeRepresentation
+    val issueTitle = utils.getStringOrEmpty(issueMap, "title")
+    name + " " + action + " an issue #" + number + 
+    " (" + issueTitle + ")" + timeRepresentation
   }
   def getIssueCommentAuthor(vcsMap: Map[String, Any]) = {
     val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
     val issueMap = utils.getMapFromOptionJSON(vcsMap.get("issue"))
+
     val name = utils.getStringOrEmpty(senderMap, "login")
     val number = utils.getStringOrEmpty(issueMap, "number")
-    name + " commented on issue #" + number + timeRepresentation
+    val issueTitle = utils.getStringOrEmpty(issueMap, "title")
+    name + " commented on issue #" + number + 
+    " (" + issueTitle + ")" + timeRepresentation
   }
   def getPullRequestAuthor(vcsMap: Map[String, Any]) = {
     val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
@@ -106,6 +111,11 @@ class VCSMessage(override val event: String,
   def getIssuesContent(vcsMap: Map[String, Any]) = {
     val issueMap = utils.getMapFromOptionJSON(vcsMap.get("issue"))
     utils.getStringOrEmpty(issueMap, "body")
+  }
+  def getIssueCommentContent(vcsMap: Map[String, Any]) = {
+    val commentMap = utils.getMapFromOptionJSON(vcsMap.get("comment"))
+    utils.getStringOrEmpty(commentMap, "body")
+
   }
   def getPullRequestContent(vcsMap: Map[String, Any]) = {
     val prMap = utils.getMapFromOptionJSON(vcsMap.get("pull_request"))
