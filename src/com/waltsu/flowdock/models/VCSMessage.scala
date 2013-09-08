@@ -38,6 +38,7 @@ class VCSMessage(override val event: String,
       case "push" => getPushAuthor(vcsMap)
       case "issues" => getIssuesAuthor(vcsMap)
       case "issue_comment" => getIssueCommentAuthor(vcsMap)
+      case "pull_request" => getPullRequestAuthor(vcsMap)
       case _ => ""
     }
   }
@@ -49,6 +50,7 @@ class VCSMessage(override val event: String,
       case "push" => getPushContent(vcsMap)
       case "issues" => getIssuesContent(vcsMap)
       case "issue_comment" => getIssuesContent(vcsMap)
+      case "pull_request" => getPullRequestContent(vcsMap)
       case _ => ""
     }
   }
@@ -84,15 +86,30 @@ class VCSMessage(override val event: String,
     val number = utils.getStringOrEmpty(issueMap, "number")
     name + " commented on issue #" + number + timeRepresentation
   }
+  def getPullRequestAuthor(vcsMap: Map[String, Any]) = {
+    val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
+    val prMap = utils.getMapFromOptionJSON(vcsMap.get("pull_request"))
+
+    val name = utils.getStringOrEmpty(senderMap, "login")
+    val prTitle = utils.getStringOrEmpty(prMap, "title")
+    val number = utils.getStringOrEmpty(vcsMap, "number")
+    val action = utils.getStringOrEmpty(vcsMap, "action")
+    name + " " + action + " a pull request #" + number +
+    " (" + prTitle + ")" + timeRepresentation
+    
+  }
 
   def getPushContent(vcsMap: Map[String, Any]) = {
     val headCommitMap = utils.getMapFromOptionJSON(vcsMap.get("head_commit"))
-    val message = utils.getStringOrEmpty(headCommitMap, "message")
-    message
+    utils.getStringOrEmpty(headCommitMap, "message")
   }
   def getIssuesContent(vcsMap: Map[String, Any]) = {
     val issueMap = utils.getMapFromOptionJSON(vcsMap.get("issue"))
     utils.getStringOrEmpty(issueMap, "body")
+  }
+  def getPullRequestContent(vcsMap: Map[String, Any]) = {
+    val prMap = utils.getMapFromOptionJSON(vcsMap.get("pull_request"))
+    utils.getStringOrEmpty(prMap, "body")
   }
 
 }
