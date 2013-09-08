@@ -53,6 +53,7 @@ class FlowActivity extends Activity {
 	  setContentView(R.layout.activity_flow)
 	  
 	  setTitle(flowName)
+	  getActionBar().setDisplayHomeAsUpEnabled(true)
 	  
 	  inputEditText.addTextChangedListener(new TextWatcher() {
 	    override def afterTextChanged(et: Editable) = {
@@ -93,6 +94,9 @@ class FlowActivity extends Activity {
 	          case false => Toast.makeText(FlowActivity.this, "Failed to send message", Toast.LENGTH_LONG).show()
 	        }  
 	      })
+	      true
+	    case android.R.id.home =>
+	      finish()
 	      true
 	    case _ => false
 	  }
