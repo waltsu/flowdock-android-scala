@@ -31,8 +31,9 @@ class FlowdockStreamClient(val context: Context, val flowUrl: String) {
   var errorCallback: (String => Unit) = null
   var successCallback: (String) => Unit = null
 
-  def streamingMessages(cb: (FlowMessage) => Boolean, coolDown: Int = 1): Unit = future[Unit] {
+  def streamingMessages(cb: (FlowMessage) => Boolean, cd: Int = 1): Unit = future[Unit] {
     Log.v("debug", "Streaming from: " + flowUrl)
+    var coolDown = cd
     try {
 	  val streamClient: DefaultHttpClient = new DefaultHttpClient()
 	  val basicAuth: Credentials = new UsernamePasswordCredentials(ApplicationState.apiToken(context), "")
@@ -52,6 +53,7 @@ class FlowdockStreamClient(val context: Context, val flowUrl: String) {
 	    val line = input.readLine()
 	    // Inform caller that succeffully read line from stream.
 	    if (successCallback != null) successCallback(line)
+	    coolDown = 1
 		if (line.startsWith("{")) {
 		  val rawMessage = utils.JSONObjectToMap(new JSONObject(line))
 		  val flowMessage = ModelBuilders.constructFlowMessage(rawMessage)
