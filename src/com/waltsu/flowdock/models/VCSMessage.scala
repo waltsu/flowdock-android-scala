@@ -58,17 +58,24 @@ class VCSMessage(override val event: String,
   def getPushAuthor(vcsMap: Map[String, Any]) = {
     val pusherMap = utils.getMapFromOptionJSON(vcsMap.get("pusher"))
     val repositoryMap = utils.getMapFromOptionJSON(vcsMap.get("repository"))
-    val headCommitMap = utils.getMapFromOptionJSON(vcsMap.get("head_commit"))
 
     val name = utils.getStringOrEmpty(pusherMap, "name")
     val project = utils.getStringOrEmpty(repositoryMap, "name")
-    val headHash = utils.getStringOrEmpty(headCommitMap, "id") match {
-      case x if x.length() > 7 => x.substring(0, 7)
-      case x: String => x
-      case _ => ""
-    }
 
-    name + " pushed new head #" + headHash + " to " + project + timeRepresentation
+    val deleted = utils.getStringOrEmpty(vcsMap, "deleted")
+    if (deleted == "true") {
+      val ref = utils.getStringOrEmpty(vcsMap, "ref") 
+      val branch = ref.split("/").last
+      name + " deleted branch " + branch + " from " + project + timeRepresentation
+    } else {
+      val headCommitMap = utils.getMapFromOptionJSON(vcsMap.get("head_commit"))
+      val headHash = utils.getStringOrEmpty(headCommitMap, "id") match {
+        case x if x.length() > 7 => x.substring(0, 7)
+        case x: String => x
+        case _ => ""
+      }
+      name + " pushed new head #" + headHash + " to " + project + timeRepresentation
+    }
   }
   def getIssuesAuthor(vcsMap: Map[String, Any]) = {
     val senderMap = utils.getMapFromOptionJSON(vcsMap.get("sender"))
