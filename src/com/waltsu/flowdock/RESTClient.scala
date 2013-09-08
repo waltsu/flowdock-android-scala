@@ -7,6 +7,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler
 import android.content.Context
 import org.apache.http.client.HttpResponseException
 import android.widget.Toast
+import java.net.UnknownHostException
 
 class SimpleResponseHandler(c: Context, cb: (Option[String]) => Unit) extends AsyncHttpResponseHandler {
   override def onSuccess(response: String) = {
@@ -16,10 +17,13 @@ class SimpleResponseHandler(c: Context, cb: (Option[String]) => Unit) extends As
   // TODO: Better error handling
   override def onFailure(throwable: Throwable, error: String) = {
     throwable match {
-      case x if x.isInstanceOf[HttpResponseException] => {
-        if (x.asInstanceOf[HttpResponseException].getStatusCode() == 401) {
+      case x: HttpResponseException => {
+        if (x.getStatusCode() == 401) {
          Toast.makeText(c, "Invalid API-key", Toast.LENGTH_LONG).show()
         }
+      }
+      case x: UnknownHostException => {
+        Toast.makeText(c, "Invalid api url", Toast.LENGTH_LONG).show()
       }
       case _ => Log.v("debug", "Other error!")
     }

@@ -4,6 +4,11 @@
       android:title="API key"
       android:showAsAction="always"
       android:visible="true" />    
+      
+  <item android:id="@+id/menuInputAPIUrl"
+      android:title="API url"
+      android:showAsAction="never"
+      android:visible="true" />
 
   <item android:id="@+id/menuItemProgress"
       android:actionLayout="@layout/progress_item"

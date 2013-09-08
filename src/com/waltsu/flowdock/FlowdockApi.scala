@@ -30,7 +30,7 @@ import android.content.Context
 object FlowdockApi {
   def getUsers(c: Context): Future[List[User]] = {
     val usersPromise = promise[List[User]] 
-    val baseUrl = ApplicationState.getApiUrl(c)
+    val baseUrl = ApplicationState.apiUrl(c)
     RESTClient.getRequest(c, baseUrl + "/users", (res) => {
       res match {
 	    case Some(response) => {
@@ -72,7 +72,7 @@ object FlowdockApi {
 
   def getFlows(c: Context): Future[List[Flow]] = {
     val flowPromise = promise[List[Flow]]
-    val baseUrl = ApplicationState.getApiUrl(c)
+    val baseUrl = ApplicationState.apiUrl(c)
     RESTClient.getRequest(c, baseUrl + "/flows", (res) => {
       res match {
 	    case Some(response) => {

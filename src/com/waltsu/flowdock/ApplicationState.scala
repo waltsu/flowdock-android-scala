@@ -20,7 +20,10 @@ object ApplicationState {
     c.getSharedPreferences("prefs", 0).getString("apiToken", "")
   }
   
-  def getApiUrl(c: Context) = {
+  def setApiUrl(c: Context, url :String) = {
+    c.getSharedPreferences("prefs", 0).edit().putString("apiUrl", url).commit()
+  }
+  def apiUrl(c: Context) = {
     c.getSharedPreferences("prefs", 0).getString("apiUrl", "https://api.flowdock.com")
   }
 }

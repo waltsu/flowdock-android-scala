@@ -53,6 +53,9 @@ class MainActivity extends Activity {
 	    case R.id.menuInputAPIKey => 
 	      openAPIKeyModal
 	      true
+	    case R.id.menuInputAPIUrl =>
+	      openAPIUrlModal
+	      true
 	    case _ => false
 	  }
 	}
@@ -105,6 +108,24 @@ class MainActivity extends Activity {
 	      override def onClick(dialog: DialogInterface, button: Int) {
 	        ApplicationState.setApiToken(MainActivity.this, input.getText().toString())
 	        Log.v("debug", "Api token set: " + input.getText().toString)
+	        fetchServerData
+	      } 
+	    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+	      override def onClick(dialog: DialogInterface, button: Int) {}
+	    })
+	    .show()
+	}
+	def openAPIUrlModal = {
+	  val input = new EditText(this)
+	  input.setText(ApplicationState.apiUrl(this))
+	  new AlertDialog.Builder(this)
+	    .setTitle("API-url")
+	    .setMessage("Please set API-url (Don't change if you don't know what you are doing)")
+	    .setView(input)
+	    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+	      override def onClick(dialog: DialogInterface, button: Int) {
+	        ApplicationState.setApiUrl(MainActivity.this, input.getText().toString())
+	        Log.v("debug", "Api url set: " + input.getText().toString)
 	        fetchServerData
 	      } 
 	    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
