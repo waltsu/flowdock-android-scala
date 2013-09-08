@@ -51,7 +51,6 @@ class FlowdockStreamClient(val context: Context, val flowUrl: String) {
 	    
 	  def consumeLine(input: BufferedReader): Unit = {
 	    val line = input.readLine()
-	    // Inform caller that succeffully read line from stream.
 	    if (successCallback != null) successCallback(line)
 	    coolDown = 1
 		if (line.startsWith("{")) {
