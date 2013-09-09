@@ -114,7 +114,8 @@ class FlowActivity extends Activity {
 	  streamClient.errorCallback = (message: String) =>
 	    toggleLoading(true)
 	  streamClient.successCallback = (message: String) =>
-	    toggleLoading(false)
+	    if (!messages.isEmpty)
+		  toggleLoading(false)
 
 	  receiveMessages = true
 	}
