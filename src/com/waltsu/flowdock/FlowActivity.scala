@@ -104,6 +104,7 @@ class FlowActivity extends Activity {
 	
 	override def onResume: Unit = {
 	  super.onResume()
+	  if (ApplicationState.currentUsers.isEmpty) return finish()
 	  toggleLoading(true)
 	  FlowdockApi.getLatestMessages(this, flowUrl, receiveNewMessages(true, false, true))
 
