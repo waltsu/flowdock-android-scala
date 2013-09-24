@@ -36,7 +36,6 @@ class FlowMessage(val event: String,
     body
   }
   
-  // Refactor
   def canBeShown: Boolean = {
     event match {
     case "message" => true

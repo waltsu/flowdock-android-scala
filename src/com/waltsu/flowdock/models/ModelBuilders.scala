@@ -27,6 +27,7 @@ object ModelBuilders {
       case "mail" => new MailMessage(event, content, id, sent, user)
       case "vcs" => new VCSMessage(event, content, id, sent, user)
       case "status" => new StatusMessage(event, content, id, sent, user)
+      case "trello" => new TrelloMessage(event, content, id, sent, user)
       case _ => new FlowMessage(event, content, id, sent, user)
     }
   }
